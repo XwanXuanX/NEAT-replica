@@ -63,3 +63,15 @@ Genome::Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connec
     this->Connections = _Connections;
 }
 
+
+
+// Getters (if need any)
+std::list<Node> Genome::getNodes() const
+{
+    return this->Nodes;
+}
+
+std::list<Connection> Genome::getConnections() const
+{
+    return this->Connections;
+}

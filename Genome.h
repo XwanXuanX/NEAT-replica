@@ -55,8 +55,10 @@ public:
     // Initialize offsprings
     Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connections);
 
-           
 
+    // Getters (if need any)
+    std::list<Node> getNodes() const;
+    std::list<Connection> getConnections() const;
 };
 
 #endif
