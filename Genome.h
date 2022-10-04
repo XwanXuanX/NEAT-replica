@@ -5,6 +5,9 @@
 #include <list>
 #include <time.h>
 
+// IMPORTANT: Innovation number (global throughout the project)
+unsigned short int INNOV = 0;
+
 // Node struct contains information of each node
 struct Node
 {
@@ -39,8 +42,18 @@ struct Connection
 class Genome
 {
 private:
+    std::list<Node>         Nodes;
+    std::list<Connection>   Connections;
 
 public:
+    // Initialize a Genome with NO hidden units (minimal structure)
+    Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, 
+           const std::list<Node> _Nodes, const std::list<Connection> _Connections, 
+           const bool _isOffspring = false); // _isOffspring indicates if lists are created/inherited
+
+           
+
+    
 
 };
 
