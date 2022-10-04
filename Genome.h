@@ -6,7 +6,7 @@
 #include <time.h>
 
 // IMPORTANT: Innovation number (global throughout the project)
-unsigned short int INNOV = 0;
+// unsigned short int INNOV = 0;
 
 
 // Node struct contains information of each node
