@@ -2,7 +2,7 @@
 
 int main()
 {
-    Genome gene(4, 3);
+    Genome gene(3, 1);
     gene.PrintGenotype();
     
     return 0;

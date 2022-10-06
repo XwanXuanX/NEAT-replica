@@ -56,7 +56,10 @@ private:
     void ToggleConnect(const unsigned int _Percent);
 
     // Assign/Nudge each weight randomly by a percent
-    void MutateWeight(const unsigned int _RNGPercent);
+    void MutateWeight(const unsigned int _Percent, const unsigned int _RNGPercent);
+
+    // Add a new node randomly
+    void AddNode(const unsigned int _Percent);
 
 public:
     // Initialize a Genome with NO hidden units (minimal structure)

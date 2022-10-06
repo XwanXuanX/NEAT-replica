@@ -2,7 +2,7 @@
 
 /////////////////////////////////////////////////////////////////
 // IMPORTANT: Innovation number (global throughout the project)//
-unsigned short int INNOV = 0;                                  //
+unsigned int INNOV = 0;                                        //
 /////////////////////////////////////////////////////////////////
 
 // Initialize a new node with initial value 0
@@ -37,7 +37,7 @@ Connection::Connection(const unsigned short int _Innov, const unsigned short int
 }
 
 // Mutate weight: when true, randomly assign new weight; otherwise, nudge the weight slightly
-void Connection::MUTWeight(const bool _isRNG=true)
+void Connection::MUTWeight(const bool _isRNG)
 {
     if(_isRNG)
         // assign completely random number between -2 and 2
@@ -68,14 +68,18 @@ Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes)
     srand((unsigned int)time(nullptr));    // random seed used to generate random numbers
 
     // Add connections to the Connection Gene list
+    unsigned int count_innov = 0;
     for(unsigned int input = 1; input <= _InputNodes; input++)
     {
         for(unsigned int output = _InputNodes + 1; output <= (_InputNodes + _OutputNodes); output++)
         {
-            Connection new_connect(0, input, output);
+            count_innov++;
+            Connection new_connect(count_innov, input, output);
             this->Connections.push_back(new_connect);
         }
     }
+    // Assign the global innovation number the used connections
+    INNOV = count_innov++;
 }
 
 // Initialize offsprings
@@ -97,25 +101,65 @@ void Genome::ToggleConnect(const unsigned int _Percent)
     std::list<Connection>::iterator iter = this->Connections.begin();
     for(; iter != this->Connections.end(); iter++)
     {
-        if(1 + (rand() % 100) < _Percent)
+        if(1 + (rand() % 100) <= _Percent)
             iter->MUTEnable();
     }
 }
 
 // Assign/Nudge each weight randomly by a percent
-void Genome::MutateWeight(const unsigned int _RNGPercent)
+void Genome::MutateWeight(const unsigned int _Percent, const unsigned int _RNGPercent)
 {
-    if(_RNGPercent > 100 || _RNGPercent < 0)
+    if(_Percent > 100 || _Percent < 0 || _RNGPercent > 100 || _RNGPercent < 0)
     {
         std::cout << "Percentage not in range [0, 100]" << std::endl;
         throw std::domain_error("BAD VALUE PASSED!");
     }
 
-    std::list<Connection>::iterator iter = this->Connections.begin();
-    for(; iter != this->Connections.end(); iter++)
+    if(1 + (rand() % 100) <= _Percent)
     {
-        if(1 + (rand() % 100) < _RNGPercent)    iter->MUTWeight(true);
-        else                                    iter->MUTWeight(false);
+        std::list<Connection>::iterator iter = this->Connections.begin();
+        for(; iter != this->Connections.end(); iter++)
+        {
+            if(1 + (rand() % 100) <= _RNGPercent)    iter->MUTWeight(true);
+            else                                     iter->MUTWeight(false);
+        }
+    }
+}
+
+// Add a new node randomly
+void Genome::AddNode(const unsigned int _Percent)
+{
+    if(_Percent > 100 || _Percent < 0)
+    {
+        std::cout << "Percentage not in range [0, 100]" << std::endl;
+        throw std::domain_error("BAD VALUE PASSED!");
+    }
+
+    if(1 + (rand() % 100) <= _Percent)
+    {
+        // add a new node into the Node Gene list (at the very end)
+        unsigned int new_id = this->Nodes.size();
+        new_id += 1;
+        Node new_node(new_id, "hidden");
+        this->Nodes.push_back(new_node);
+
+        // randomly access a connection and disable it
+        std::list<Connection>::iterator iter = this->Connections.begin();
+        for(unsigned i = 0; i < (rand() % (this->Connections.size() + 1)); i++)
+        {
+            iter++; // increment the list iterator
+        }
+        iter->Enable = false;   // disable the connection
+
+        // add two new connections
+        Connection connect_front(INNOV, new_id, iter->Out, iter->Weight);
+        INNOV += 1;
+        Connection connect_back(INNOV, iter->In, new_id, 1.0);
+        INNOV += 1;
+
+        // Push new connections with innov number into Connection Gene list
+        this->Connections.push_back(connect_front);
+        this->Connections.push_back(connect_back);
     }
 }
 
