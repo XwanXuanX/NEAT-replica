@@ -61,6 +61,9 @@ private:
     // Add a new node randomly
     void AddNode(const unsigned int _Percent);
 
+    // Add a new connection randomly
+    void AddConnection(const unsigned int _Percent);
+
 public:
     // Initialize a Genome with NO hidden units (minimal structure)
     // Initialize 1st generation
@@ -70,7 +73,7 @@ public:
 
     // Mutate the Genome in three possible ways
     //      * Add connection            ()
-    //      * Add node                  ()
+    //      * Add node                  (*)
     //      * Change weight             (*)
     //      * Random weight             (*)
     //      * Dis/Enable connection     (*)

@@ -145,7 +145,7 @@ void Genome::AddNode(const unsigned int _Percent)
 
         // randomly access a connection and disable it
         std::list<Connection>::iterator iter = this->Connections.begin();
-        for(unsigned i = 0; i < (rand() % (this->Connections.size() + 1)); i++)
+        for(unsigned i = 0; i < (rand() % (this->Connections.size())); i++)
         {
             iter++; // increment the list iterator
         }
@@ -160,6 +160,69 @@ void Genome::AddNode(const unsigned int _Percent)
         // Push new connections with innov number into Connection Gene list
         this->Connections.push_back(connect_front);
         this->Connections.push_back(connect_back);
+    }
+}
+
+// Add a new connection randomly
+void Genome::AddConnection(const unsigned int _Percent)
+{
+    if(_Percent > 100 || _Percent < 0)
+    {
+        std::cout << "Percentage not in range [0, 100]" << std::endl;
+        throw std::domain_error("BAD VALUE PASSED!");
+    }
+
+    if(1 + (rand() % 100) <= _Percent)
+    {
+        // Question: How to avoid feed-backward network when randomly adding connections?
+        // Answer is provided as follows: 
+        // 
+        // Case analysis:
+        // There are three cases which a node can be randomly selected: Input node; Hidden node; Output node
+        // To prevent feed-backward loop in our network, we have four rules:
+        //      * Input node CAN connect to any nodes WITHOUT checks;
+        //      * Output node CANNOT connect to any nodes WITHOUT checks;
+        //      * Hidden node CAN connect to output node, but not input nodes, WITHOUT checks;
+        //      * Hidden node MAY connect to another hidden node, but WITH checks.
+        //
+        // Necessary checks to prevent feed-backward loop:
+        //      * Perform the pre-calculation operation
+        //      * If the calculation get the output                           -> NO error!
+        //      * If the calculation DOES NOT evaluate at least one node once -> ERROR!
+        //      * If error is detected, reverse the connection
+        //      * If reversed connection exists, try new ones randomly
+
+        while(true)
+        {
+            // Randomly select a node in the Node Gene list
+            unsigned int in_node = rand() % (this->Nodes.size());
+            std::list<Node>::const_iterator iter = this->Nodes.begin();
+            for(unsigned int i = 0; i < in_node; i++)
+            {
+                iter++; // increment list iterator
+            }
+
+            // Output node CANNOT connect to any nodes WITHOUT checks;
+            if(iter->Type == "output") 
+                continue;
+            // Input node CAN connect to any nodes WITHOUT checks;
+            else if(iter->Type == "input")
+            {
+                unsigned int cnt_input = 0; // the counter variable counts the number of input nodes
+                std::list<Node>::const_iterator input_iter = this->Nodes.begin();
+                for(; input_iter->Type == "input"; cnt_input++)
+                {
+                    input_iter++;
+                }
+                cnt_input += 1;
+
+                // Randomly select a non-input node; random range = [cnt_input, size()]
+                unsigned int out_node = (rand() % (this->Nodes.size() - cnt_input + 1)) + cnt_input;
+
+                // Check if this connection already exists
+                
+            }
+        }
     }
 }
 
