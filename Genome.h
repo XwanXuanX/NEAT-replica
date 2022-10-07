@@ -5,6 +5,7 @@
 #include <list>
 #include <time.h>
 #include <iomanip>
+#include <vector>
 
 
 // Node struct contains information of each node

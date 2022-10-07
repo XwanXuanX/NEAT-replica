@@ -192,34 +192,109 @@ void Genome::AddConnection(const unsigned int _Percent)
         //      * If error is detected, reverse the connection
         //      * If reversed connection exists, try new ones randomly
 
+        std::list<Node>::const_iterator iter;
         while(true)
         {
             // Randomly select a node in the Node Gene list
             unsigned int in_node = rand() % (this->Nodes.size());
-            std::list<Node>::const_iterator iter = this->Nodes.begin();
+            iter = this->Nodes.begin();
             for(unsigned int i = 0; i < in_node; i++)
             {
                 iter++; // increment list iterator
             }
 
             // Output node CANNOT connect to any nodes WITHOUT checks;
-            if(iter->Type == "output") 
-                continue;
-            // Input node CAN connect to any nodes WITHOUT checks;
-            else if(iter->Type == "input")
-            {
-                unsigned int cnt_input = 0; // the counter variable counts the number of input nodes
-                std::list<Node>::const_iterator input_iter = this->Nodes.begin();
-                for(; input_iter->Type == "input"; cnt_input++)
-                {
-                    input_iter++;
-                }
-                cnt_input += 1;
+            if(iter->Type != "output") 
+                break;
+        }
 
-                // Randomly select a non-input node; random range = [cnt_input, size()]
+        // Keep track of the number of input nodes
+        unsigned int cnt_input = 0; // the counter variable counts the number of input nodes
+        std::list<Node>::const_iterator input_iter = this->Nodes.begin();
+        for(; input_iter->Type == "input"; cnt_input++)
+        {
+            input_iter++;
+        }
+        cnt_input += 1; // Next avaliable node ID
+
+        // Input node CAN connect to any nodes WITHOUT checks;
+        if(iter->Type == "input")
+        {
+            // Randomly select a non-input node; random range = [cnt_input, size()]
+            unsigned int out_node = (rand() % (this->Nodes.size() - cnt_input + 1)) + cnt_input;
+
+            // Check if this connection already exists
+            std::list<Connection>::iterator valid_iter = this->Connections.begin();
+            for(; valid_iter != this->Connections.end(); valid_iter++)
+            {
+                // If the connection already exists
+                if(iter->ID == valid_iter->In && out_node == valid_iter->Out)
+                {
+                    valid_iter->MUTWeight(true);    // Only assign the connection a new weight
+                    return;                         // Exit the function
+                }
+            }
+            // if the connection does not exists, append it to the Connection Gene list
+            Connection new_connect(INNOV, iter->ID, out_node);
+            INNOV++;
+            this->Connections.push_back(new_connect);
+
+            return; // Exit the function
+        }
+        else if(iter->Type == "hidden")
+        {
+            std::vector<unsigned int> used_nodes;   // stores the tried-failed nodes
+            // loop until find a suitable output node
+            while(true)
+            {
+                // Exclude input nodes from the available options
                 unsigned int out_node = (rand() % (this->Nodes.size() - cnt_input + 1)) + cnt_input;
 
-                // Check if this connection already exists
+                // Exclude the tried-failed nodes
+                bool isvalid = true;
+                for(unsigned int i = 0; i < used_nodes.size(); i++)
+                {
+                    if(out_node == used_nodes[i])
+                        isvalid = false; break;
+                }
+                if(!isvalid) continue;
+
+                // Check if this connection already exists: if yes, then must be VALID!
+                std::list<Connection>::iterator valid_iter = this->Connections.begin();
+                for(; valid_iter != this->Connections.end(); valid_iter++)
+                {
+                    // If the connection already exists
+                    if(iter->ID == valid_iter->In && out_node == valid_iter->Out)
+                    {
+                        valid_iter->MUTWeight(true);
+                        return;
+                    }
+                }
+
+                // If the connection does not exists, do extra checks
+                // Get the output node instance
+                std::list<Node>::const_iterator output_iter = this->Nodes.begin();
+                for(unsigned int i = 0; i < (out_node - 1); i++)
+                {
+                    output_iter++;
+                }
+
+                // Check if the output is the output nodes: if yes, then must be VALID!
+                if(output_iter->Type == "output")
+                {
+                    Connection new_connect(INNOV, iter->ID, output_iter->ID);
+                    INNOV++;
+                    this->Connections.push_back(new_connect);
+                    return;
+                }
+
+                // Real Challenge: if the program gets here, then the output nodes must be:
+                //      * Not input node
+                //      * Not tried before
+                //      * Form a NEW connection
+                //      * Not output node
+                // Thus, we need to use the final weapon: pre-calculation
+
                 
             }
         }
