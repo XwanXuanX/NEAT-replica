@@ -102,7 +102,12 @@ void Genome::ToggleConnect(const unsigned int _Percent)
     for(; iter != this->Connections.end(); iter++)
     {
         if(1 + (rand() % 100) <= _Percent)
+        {
             iter->MUTEnable();
+#ifdef DEBUG
+            std::cout << "Connection " << iter->In << "-" << iter->Out << ": Enable mutation completed." << std::endl;
+#endif
+        }
     }
 }
 
@@ -123,6 +128,9 @@ void Genome::MutateWeight(const unsigned int _Percent, const unsigned int _RNGPe
             if(1 + (rand() % 100) <= _RNGPercent)    iter->MUTWeight(true);
             else                                     iter->MUTWeight(false);
         }
+#ifdef DEBUG
+        std::cout << "Genome connection weights mutation completed." << std::endl;
+#endif
     }
 }
 
@@ -160,6 +168,45 @@ void Genome::AddNode(const unsigned int _Percent)
         // Push new connections with innov number into Connection Gene list
         this->Connections.push_back(connect_front);
         this->Connections.push_back(connect_back);
+
+#ifdef DEBUG
+        std::cout << "Node " << new_id << " is successfully added." << std::endl;
+        std::cout << "Connection " << iter->In << "-" << new_id << " is successfully added." << std::endl;
+        std::cout << "Connection " << new_id << "-" << iter->Out << " is successfully added. " << std::endl;
+#endif
+    }
+}
+
+bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _OutputNode, const unsigned int _InputNum) const
+{
+    // In terms of random access, vectors are more efficient than linkedlist
+    std::vector<Node> tmpNodes;
+    std::list<Node>::const_iterator tmpIter = this->Nodes.begin();
+    for(; tmpIter != this->Nodes.end(); tmpIter++)
+    {
+        // transfer all the nodes into vector
+        tmpNodes.push_back(*tmpIter);
+    }
+
+    for(unsigned int i = 0; i < _InputNum; i++)
+    {
+        // Assign the input nodes fake input values to make them non-empty
+        tmpNodes[i].Val = 1.0;
+    }
+
+    // Make a copy of the existing Connection Gene list, modify it for our purpose
+    std::list<Connection> tmpConnections = this->Connections;
+    Connection new_connect(NULL, _InputNode, _OutputNode);
+    tmpConnections.push_back(new_connect);  // push the fake connection into the list
+
+    // enumerate and calculate the non-input nodes one by one
+    // In the most negative circumstance, it will take the network (size() - _InputNum) times to fully evaluate
+    for(unsigned int recur = 1; recur <= (tmpNodes.size() - _InputNum); recur++)
+    {
+        for(unsigned int node = _InputNum; node < tmpNodes.size(); node++)
+        {
+            
+        }
     }
 }
 
@@ -231,6 +278,10 @@ void Genome::AddConnection(const unsigned int _Percent)
                 if(iter->ID == valid_iter->In && out_node == valid_iter->Out)
                 {
                     valid_iter->MUTWeight(true);    // Only assign the connection a new weight
+#ifdef DEBUG
+                    std::cout << "Connection " << iter->ID << "-" << out_node 
+                              << " already exists. No connections were added." << std::endl;
+#endif
                     return;                         // Exit the function
                 }
             }
@@ -239,6 +290,9 @@ void Genome::AddConnection(const unsigned int _Percent)
             INNOV++;
             this->Connections.push_back(new_connect);
 
+#ifdef DEBUG
+            std::cout << "Connection " << iter->ID << "-" << out_node << " is successfully added." << std::endl;
+#endif
             return; // Exit the function
         }
         else if(iter->Type == "hidden")
@@ -267,6 +321,10 @@ void Genome::AddConnection(const unsigned int _Percent)
                     if(iter->ID == valid_iter->In && out_node == valid_iter->Out)
                     {
                         valid_iter->MUTWeight(true);
+#ifdef DEBUG
+                        std::cout << "Connection " << iter->ID << "-" << out_node
+                                  << " already exists. No connections were added." << std::endl;
+#endif
                         return;
                     }
                 }
@@ -285,6 +343,9 @@ void Genome::AddConnection(const unsigned int _Percent)
                     Connection new_connect(INNOV, iter->ID, output_iter->ID);
                     INNOV++;
                     this->Connections.push_back(new_connect);
+#ifdef DEBUG
+                    std::cout << "Connection " << iter->ID << "-" << output_iter->ID << " is successfully added." << std::endl;
+#endif
                     return;
                 }
 
@@ -293,9 +354,25 @@ void Genome::AddConnection(const unsigned int _Percent)
                 //      * Not tried before
                 //      * Form a NEW connection
                 //      * Not output node
-                // Thus, we need to use the final weapon: pre-calculation
+                // Thus, we need to use the final weapon: pre-calculation!
+                //
+                // Q: Of course, we can use pre-calc as a general detection method. So why bother listing all other probabilities?
+                // A: Yes, pre-cal is a general method. However, it is less efficient to use. 
+                //    If any other probabilities are satisfied, we try to skip using pre-cal as much as possible.
 
-                
+                if(_PreCalculation(iter->ID, out_node, (cnt_input - 1)) == true)
+                {
+                    // If pre-calc method passed, this connection can be formally added
+                    Connection new_connect(INNOV, iter->ID, out_node);
+                    INNOV++;
+                    this->Connections.push_back(new_connect);
+#ifdef DEBUG
+                    std::cout << "Connection " << iter->ID << "-" << out_node << " is successfully added." << std::endl;
+#endif
+                    return;
+                }
+                else
+                    used_nodes.push_back(out_node); continue;
             }
         }
     }

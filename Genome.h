@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <vector>
 
+// #define DEBUG
 
 // Node struct contains information of each node
 struct Node
@@ -64,6 +65,7 @@ private:
 
     // Add a new connection randomly
     void AddConnection(const unsigned int _Percent);
+    bool _PreCalculation(const unsigned int _InputNode, const unsigned int _OutputNode, const unsigned int _InputNum) const;
 
 public:
     // Initialize a Genome with NO hidden units (minimal structure)
