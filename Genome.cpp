@@ -205,9 +205,35 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
     {
         for(unsigned int node = _InputNum; node < tmpNodes.size(); node++)
         {
-            
+            // Check if the node is non-empty
+            if(tmpNodes[node].Val != 0)
+                continue;
+
+            // Check if the node can be calculated
+            bool isvalid = true;
+            std::list<Connection>::const_iterator iter = tmpConnections.begin();
+            for(; iter != tmpConnections.end(); iter++)
+            {
+                if(iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val == 0)
+                    isvalid = false; break;
+            }
+            if(!isvalid) continue;
+
+            // If the above valid-detecting system did not trigger any errors, meaning the node can be calculated
+            // To maximize efficiency, making the node non-empty is sufficient
+            tmpNodes[node].Val = 1.0;
         }
+
+        // Check if all nodes have already been calculated
+        bool should_exit = true;
+        for(unsigned int i = 0; i < tmpNodes.size(); i++)
+        {
+            if(tmpNodes[i].Val == 0) should_exit = false;
+        }
+        if(should_exit == true)     return true;
+        else                        continue;
     }
+    return false;
 }
 
 // Add a new connection randomly
