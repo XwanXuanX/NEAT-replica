@@ -74,13 +74,17 @@ public:
     // Initialize offsprings
     Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connections);
 
-    // Mutate the Genome in three possible ways
-    //      * Add connection            ()
-    //      * Add node                  (*)
-    //      * Change weight             (*)
-    //      * Random weight             (*)
-    //      * Dis/Enable connection     (*)
-
+    // Mutate the Genome in five possible ways
+    //      * Add connection            (Done)
+    //      * Add node                  (Done)
+    //      * Change weight             (Done)
+    //      * Random weight             (Done)
+    //      * Dis/Enable connection     (Done)
+    // If you want to disable any type of mutation, just set the percent to 0
+    void Mutate(const unsigned int _ToggleConnect_Percent, 
+                const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
+                const unsigned int _AddNode_Percent, 
+                const unsigned int _AddConnection_Percent);
 
     // Print the genotype of current genome to inspect
     void PrintGenotype() const;

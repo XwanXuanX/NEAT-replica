@@ -404,6 +404,26 @@ void Genome::AddConnection(const unsigned int _Percent)
     }
 }
 
+// Mutate the Genome in five possible ways
+// If you want to disable any type of mutation, just set the percent to 0
+void Genome::Mutate(const unsigned int _ToggleConnect_Percent, 
+                    const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
+                    const unsigned int _AddNode_Percent, 
+                    const unsigned int _AddConnection_Percent)
+{
+    // Enable/Disable each connection randomly by a percent
+    this->ToggleConnect(_ToggleConnect_Percent);
+
+    // Assign/Nudge each weight randomly by a percent
+    this->MutateWeight(_MutateWeight_Percent, _RNGPercent);
+
+    // Add a new node randomly
+    this->AddNode(_AddNode_Percent);
+
+    // Add a new connection randomly
+    this->AddConnection(_AddConnection_Percent);
+}
+
 // Print the genotype of current genome to inspect
 void Genome::PrintGenotype() const
 {
