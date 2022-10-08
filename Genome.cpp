@@ -196,7 +196,7 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
 
     // Make a copy of the existing Connection Gene list, modify it for our purpose
     std::list<Connection> tmpConnections = this->Connections;
-    Connection new_connect(NULL, _InputNode, _OutputNode);
+    Connection new_connect(0, _InputNode, _OutputNode);
     tmpConnections.push_back(new_connect);  // push the fake connection into the list
 
     // enumerate and calculate the non-input nodes one by one
