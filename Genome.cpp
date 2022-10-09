@@ -15,29 +15,29 @@ Node::Node(const unsigned short int _ID, const std::string _Type, const ActFunc 
 }
 
 // Activation functions are defined here
-static inline double act_Linear(const double x)
+inline double Node::act_Linear(const double x)
 {
     return x;
 }
 
-static inline double act_Sigmoid(const double x)
+inline double Node::act_Sigmoid(const double x)
 {
     return (1.0 / (std::exp(-x) + 1.0));
 }
 
-static inline double act_Tanh(const double x)
+inline double Node::act_Tanh(const double x)
 {
     return std::tanh(x);
 }
 
-static inline double act_ReLU(const double x)
+inline double Node::act_ReLU(const double x)
 {
     return (x >= 0 ? x : 0);
 }
 
-static inline double act_Swish(const double x)
+inline double Node::act_Swish(const double x)
 {
-    return (x * act_Sigmoid(x));
+    return (x * Node::act_Sigmoid(x));
 }
 
 // Member function to select the type of activation function to use
@@ -46,11 +46,11 @@ void Node::ApplyActFunc()
     switch (this->Mode)
     {
     case ActFunc::None:     break;
-    case ActFunc::Linear:   this->Val = act_Linear(this->Val);  break;
-    case ActFunc::Sigmoid:  this->Val = act_Sigmoid(this->Val); break;
-    case ActFunc::Tanh:     this->Val = act_Tanh(this->Val);    break;
-    case ActFunc::ReLU:     this->Val = act_ReLU(this->Val);    break;
-    case ActFunc::Swish:    this->Val = act_Swish(this->Val);   break;
+    case ActFunc::Linear:   this->Val = Node::act_Linear(this->Val);  break;
+    case ActFunc::Sigmoid:  this->Val = Node::act_Sigmoid(this->Val); break;
+    case ActFunc::Tanh:     this->Val = Node::act_Tanh(this->Val);    break;
+    case ActFunc::ReLU:     this->Val = Node::act_ReLU(this->Val);    break;
+    case ActFunc::Swish:    this->Val = Node::act_Swish(this->Val);   break;
     default:                break;
     }
 }
