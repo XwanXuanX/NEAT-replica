@@ -40,6 +40,21 @@ static inline double act_Swish(const double x)
     return (x * act_Sigmoid(x));
 }
 
+// Member function to select the type of activation function to use
+void Node::ApplyActFunc()
+{
+    switch (this->Mode)
+    {
+    case ActFunc::None:     break;
+    case ActFunc::Linear:   this->Val = act_Linear(this->Val);  break;
+    case ActFunc::Sigmoid:  this->Val = act_Sigmoid(this->Val); break;
+    case ActFunc::Tanh:     this->Val = act_Tanh(this->Val);    break;
+    case ActFunc::ReLU:     this->Val = act_ReLU(this->Val);    break;
+    case ActFunc::Swish:    this->Val = act_Swish(this->Val);   break;
+    default:                break;
+    }
+}
+
 // Initialize connection with random weights
 Connection::Connection(const unsigned short int _Innov, const unsigned short int _In, const unsigned short int _Out)
 {
