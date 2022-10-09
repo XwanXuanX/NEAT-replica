@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <vector>
 #include <cmath>
+#include <map>
 
 // #define DEBUG
 
@@ -102,7 +103,7 @@ public:
                 const unsigned int _AddConnection_Percent);
 
     // Propagate (a.k.a. calculate) the output of the network based on the given input
-    // double Propagate(double* _pInput) const;
+    std::vector<double> Propagate(double* _pInputs, const std::size_t _InputLength) const;
 
     // Print the genotype of current genome to inspect
     void PrintGenotype() const;

@@ -519,6 +519,99 @@ void Genome::Mutate(const unsigned int _ToggleConnect_Percent,
     this->AddConnection(_AddConnection_Percent);
 }
 
+// Propagate (a.k.a. calculate) the output of the network based on the given input
+std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _InputLength) const
+{
+    // Check if the _InputLength is equal to the number of input nodes
+    unsigned int cnt_input = 0; // the counter variable counts the number of input nodes
+    std::list<Node>::const_iterator node_iter = this->Nodes.begin();
+    for(; node_iter->Type == "input"; cnt_input++)
+    {
+        node_iter++;
+    }
+    if(_InputLength != cnt_input)
+        // if the input nodes and the input length does not match, exit immediately
+        throw std::domain_error("BAD INPUT LENGTH!");
+
+    // To randomly access each node more efficiently, transfer all nodes into vector
+    std::vector<Node> tmpNodes;
+    node_iter = this->Nodes.begin();
+    for(; node_iter != this->Nodes.end(); node_iter++)
+    {
+        tmpNodes.push_back(*node_iter);
+    }
+    // Place each input sequentially into each input nodes
+    for(std::size_t i = 0; i < _InputLength; i++)
+    {
+        tmpNodes[i].Val = _pInputs[i];
+    }
+
+#ifdef DEBUG
+    for(unsigned int i = 0; i < tmpNodes.size(); i++)
+        std::cout << tmpNodes[i].Val << " ";
+    std::cout << std::endl;
+#endif
+
+    std::vector<double> outputs;
+    // Forward-Propagation starts!
+    for(unsigned int recur = 1; recur <= (tmpNodes.size() - cnt_input); recur++)
+    {
+        for(unsigned int node = cnt_input; node < tmpNodes.size(); node++)
+        {
+            // Check if the node is non-empty
+            if(tmpNodes[node].Val != 0.0)
+                continue;
+
+            // The map holds all the inputs and its corresponding weights as Pairs (Input, Weight)
+            std::map<double, double> Input_Weight;
+
+            bool isvalid = true;
+            std::list<Connection>::const_iterator iter = this->Connections.begin();
+            for(; iter != this->Connections.end(); iter++)
+            {
+                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val == 0.0)
+                {
+                    isvalid = false;
+                    break;
+                }
+                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val != 0.0)
+                    Input_Weight.insert(std::pair<double, double>(tmpNodes[(iter->In) - 1].Val, iter->Weight));
+            }
+            
+            if(!isvalid)
+                continue;
+            else
+            {
+                // Add up each weight multiply by its corresponding input. Then apply activation function.
+                std::map<double, double>::const_iterator map_iter = Input_Weight.begin();
+                for(; map_iter != Input_Weight.end(); map_iter++)
+                {
+                    tmpNodes[node].Val += (map_iter->first * map_iter->second);
+                }
+                tmpNodes[node].ApplyActFunc();
+            }
+        }
+
+        // Check if all nodes have already been calculated
+        bool should_exit = true;
+        outputs.clear();
+        for(unsigned int i = 0; i < tmpNodes.size(); i++)
+        {
+            // Push the value of the output nodes into a vector and return it
+            if(tmpNodes[i].Type == "output")
+                outputs.push_back(tmpNodes[i].Val);
+            // Check if there are remaining zeros in the list
+            if(tmpNodes[i].Val == 0.0)
+                should_exit = false;
+        }
+        if(should_exit == true)
+            return outputs;
+        else
+            continue;
+    }
+    return outputs;
+}
+
 // Print the genotype of current genome to inspect
 void Genome::PrintGenotype() const
 {

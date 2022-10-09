@@ -5,36 +5,13 @@ int main()
     Genome gene(3, 1, Node::ActFunc::Linear);
     gene.PrintGenotype();
 
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
+    double input[] = {1, 2, 3};
 
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
+    std::vector<double> out = gene.Propagate(input, 3);
 
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-    gene.Mutate(0, 0, 0, 100, Node::ActFunc::None, 0);
-
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    gene.Mutate(0, 0, 0, 0, Node::ActFunc::None, 100);
-    
-    gene.PrintGenotype();
+    for(unsigned int i = 0; i < out.size(); i++)
+        std::cout << out[i] << " ";
+    std::cout << std::endl;
 
     return 0;
 }
