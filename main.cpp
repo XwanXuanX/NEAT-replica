@@ -7,6 +7,29 @@ int main()
 
     gene.Mutate(0, 0, 0, 100, 0);
     gene.Mutate(0, 0, 0, 100, 0);
+    gene.Mutate(0, 0, 0, 100, 0);
+
+    gene.Mutate(0, 0, 0, 0, 100);
+    gene.Mutate(0, 0, 0, 0, 100);
+    gene.Mutate(0, 0, 0, 0, 100);
+    gene.Mutate(0, 0, 0, 0, 100);
+
+    gene.Mutate(0, 0, 0, 100, 0);
+    gene.Mutate(0, 0, 0, 100, 0);
+    gene.Mutate(0, 0, 0, 100, 0);
+    gene.Mutate(0, 0, 0, 100, 0);
+
+    gene.Mutate(0, 0, 0, 0, 100);
+    gene.Mutate(0, 0, 0, 0, 100);
+    gene.Mutate(0, 0, 0, 0, 100);
+    gene.Mutate(0, 0, 0, 0, 100);
+
+    gene.Mutate(0, 0, 0, 100, 0);
+    gene.Mutate(0, 0, 0, 100, 0);
+    gene.Mutate(0, 0, 0, 100, 0);
+
+    gene.Mutate(0, 0, 0, 0, 100);
+    gene.Mutate(0, 0, 0, 0, 100);
     gene.Mutate(0, 0, 0, 0, 100);
     
     gene.PrintGenotype();

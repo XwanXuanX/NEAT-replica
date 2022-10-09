@@ -79,7 +79,7 @@ Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes)
         }
     }
     // Assign the global innovation number the used connections
-    INNOV = count_innov++;
+    INNOV = count_innov + 1;
 }
 
 // Initialize offsprings
@@ -125,8 +125,10 @@ void Genome::MutateWeight(const unsigned int _Percent, const unsigned int _RNGPe
         std::list<Connection>::iterator iter = this->Connections.begin();
         for(; iter != this->Connections.end(); iter++)
         {
-            if(1 + (rand() % 100) <= _RNGPercent)    iter->MUTWeight(true);
-            else                                     iter->MUTWeight(false);
+            if(1 + (rand() % 100) <= _RNGPercent)    
+                iter->MUTWeight(true);
+            else                                     
+                iter->MUTWeight(false);
         }
 #ifdef DEBUG
         std::cout << "Genome connection weights mutation completed." << std::endl;
@@ -152,10 +154,20 @@ void Genome::AddNode(const unsigned int _Percent)
         this->Nodes.push_back(new_node);
 
         // randomly access a connection and disable it
-        std::list<Connection>::iterator iter = this->Connections.begin();
-        for(unsigned i = 0; i < (rand() % (this->Connections.size())); i++)
+        std::list<Connection>::iterator iter;
+        while(true)
         {
-            iter++; // increment the list iterator
+            iter = this->Connections.begin();
+            for(unsigned i = 0; i < (rand() % (this->Connections.size())); i++)
+            {
+                iter++; // increment the list iterator
+            }
+
+            // Already disabled connection cannot be disabled twice
+            if(iter->Enable != false) 
+                break;
+            else                      
+                continue;
         }
         iter->Enable = false;   // disable the connection
 
@@ -195,9 +207,15 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
     }
 
     // Make a copy of the existing Connection Gene list, modify it for our purpose
-    std::list<Connection> tmpConnections = this->Connections;
+    std::list<Connection> tmpConnections(this->Connections);
     Connection new_connect(0, _InputNode, _OutputNode);
     tmpConnections.push_back(new_connect);  // push the fake connection into the list
+
+#ifdef DEBUG
+    for(unsigned int i = 0; i < tmpNodes.size(); i++)
+        std::cout << tmpNodes[i].Val << " ";
+    std::cout << std::endl;
+#endif
 
     // enumerate and calculate the non-input nodes one by one
     // In the most negative circumstance, it will take the network (size() - _InputNum) times to fully evaluate
@@ -206,7 +224,7 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
         for(unsigned int node = _InputNum; node < tmpNodes.size(); node++)
         {
             // Check if the node is non-empty
-            if(tmpNodes[node].Val != 0)
+            if(tmpNodes[node].Val != 0.0)
                 continue;
 
             // Check if the node can be calculated
@@ -214,25 +232,51 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
             std::list<Connection>::const_iterator iter = tmpConnections.begin();
             for(; iter != tmpConnections.end(); iter++)
             {
-                if(iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val == 0)
-                    isvalid = false; break;
+#ifdef DEBUG
+                std::cout << iter->Enable << "\t" << iter->Out << "\t" << tmpNodes[node].ID << "\t"
+                          << tmpNodes[(iter->In) - 1].Val << std::endl;
+#endif
+                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val == 0.0)
+                {
+                    isvalid = false; 
+                    break;
+                }
             }
-            if(!isvalid) continue;
-
+            if(!isvalid) 
+                continue;
             // If the above valid-detecting system did not trigger any errors, meaning the node can be calculated
             // To maximize efficiency, making the node non-empty is sufficient
-            tmpNodes[node].Val = 1.0;
+            else 
+                tmpNodes[node].Val = 1.0;
         }
 
         // Check if all nodes have already been calculated
         bool should_exit = true;
         for(unsigned int i = 0; i < tmpNodes.size(); i++)
         {
-            if(tmpNodes[i].Val == 0) should_exit = false;
+#ifdef DEBUG
+            std::cout << tmpNodes[i].Val << " ";
+#endif
+            if(tmpNodes[i].Val == 0.0)
+                should_exit = false;
         }
-        if(should_exit == true)     return true;
-        else                        continue;
+        if(should_exit == true)
+        {
+#ifdef DEBUG
+            std::cout << std::endl;
+            std::cout << "Connection " << _InputNode << "-" << _OutputNode << " PASSES the pre-calc test in "
+                      << recur << " iteration(s)." << std::endl;
+#endif
+            return true;
+        }
+        else
+            continue;
     }
+
+#ifdef DEBUG
+    std::cout << std::endl;
+    std::cout << "Connection " << _InputNode << "-" << _OutputNode << " FAILS the pre-calc test." << std::endl;
+#endif
     return false;
 }
 
@@ -330,14 +374,22 @@ void Genome::AddConnection(const unsigned int _Percent)
                 // Exclude input nodes from the available options
                 unsigned int out_node = (rand() % (this->Nodes.size() - cnt_input + 1)) + cnt_input;
 
+                // Exclude itself: connection cannot start and end on one node
+                if(iter->ID == out_node) 
+                    continue;
+
                 // Exclude the tried-failed nodes
                 bool isvalid = true;
                 for(unsigned int i = 0; i < used_nodes.size(); i++)
                 {
                     if(out_node == used_nodes[i])
-                        isvalid = false; break;
+                    {
+                        isvalid = false; 
+                        break;
+                    }
                 }
-                if(!isvalid) continue;
+                if(!isvalid) 
+                    continue;
 
                 // Check if this connection already exists: if yes, then must be VALID!
                 std::list<Connection>::iterator valid_iter = this->Connections.begin();
