@@ -47,6 +47,9 @@
         "iomanip": "cpp",
         "xlocmon": "cpp",
         "xloctime": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "array": "cpp",
+        "map": "cpp",
+        "xtree": "cpp"
     }
 }
