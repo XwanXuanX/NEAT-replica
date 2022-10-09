@@ -1,9 +1,11 @@
 #include "Genome.h"
 
-/////////////////////////////////////////////////////////////////
-// IMPORTANT: Innovation number (global throughout the project)//
-unsigned int INNOV = 0;                                        //
-/////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+// IMPORTANT: Innovation number (global throughout the project) //
+unsigned int INNOV = 1;                                         //
+// IMPORTANT: Innovation number database                        //
+std::map<unsigned int, Connection> INNOV_DATABASE;              //
+//////////////////////////////////////////////////////////////////
 
 // Initialize a new node with initial value 0
 Node::Node(const unsigned short int _ID, const std::string _Type, const ActFunc _Mode)
@@ -108,21 +110,15 @@ Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, 
         this->Nodes.push_back(new_node);
     }
 
-    srand((unsigned int)time(nullptr));    // random seed used to generate random numbers
-
     // Add connections to the Connection Gene list
-    unsigned int count_innov = 0;
     for(unsigned int input = 1; input <= _InputNodes; input++)
     {
         for(unsigned int output = _InputNodes + 1; output <= (_InputNodes + _OutputNodes); output++)
         {
-            count_innov++;
-            Connection new_connect(count_innov, input, output);
-            this->Connections.push_back(new_connect);
+            Connection new_connect(0, input, output);
+            this->ConnectionProcessor(new_connect);
         }
     }
-    // Assign the global innovation number the used connections
-    INNOV = count_innov + 1;
 }
 
 // Initialize offsprings
@@ -130,6 +126,43 @@ Genome::Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connec
 {
     this->Nodes       = _Nodes;
     this->Connections = _Connections;
+}
+
+// Check if the connection is in the INNOV_DATABASE
+//      * If not, insert new connection and new INNOV number, and add to Connection Gene list
+//      * If yes, add to Connection Gene list using the existing INNOV number
+bool Genome::ConnectionProcessor(Connection new_connect)
+{
+    bool in_database = false;
+    unsigned int EX_innov = 0;
+    // iterate through the Innovation Database and match existing connections
+    std::map<unsigned int, Connection>::const_iterator database_iter = INNOV_DATABASE.begin();
+    for(; database_iter != INNOV_DATABASE.end(); database_iter++)
+    {
+        if(database_iter->second.In == new_connect.In && database_iter->second.Out == new_connect.Out)
+        {
+            EX_innov = database_iter->first;
+            in_database = true;
+            break;
+        }
+    }
+
+    // If not, insert new connection and new INNOV number, and add to Connection Gene list
+    if(in_database == false)
+    {
+        INNOV_DATABASE.insert(std::pair<unsigned int, Connection>(INNOV, new_connect));
+        new_connect.Innov = INNOV;
+        this->Connections.push_back(new_connect);
+        INNOV += 1;
+    }
+    // If yes, add to Connection Gene list using the existing INNOV number
+    else
+    {
+        new_connect.Innov = EX_innov;
+        this->Connections.push_back(new_connect);
+    }
+
+    return in_database;
 }
 
 // Enable/Disable each connection randomly by a percent
@@ -215,14 +248,10 @@ void Genome::AddNode(const unsigned int _Percent, const Node::ActFunc _HiddenMod
         iter->Enable = false;   // disable the connection
 
         // add two new connections
-        Connection connect_front(INNOV, new_id, iter->Out, iter->Weight);
-        INNOV += 1;
-        Connection connect_back(INNOV, iter->In, new_id, 1.0);
-        INNOV += 1;
-
-        // Push new connections with innov number into Connection Gene list
-        this->Connections.push_back(connect_front);
-        this->Connections.push_back(connect_back);
+        Connection connect_front(0, new_id, iter->Out, iter->Weight);
+        Connection connect_back(0, iter->In, new_id, 1.0);
+        this->ConnectionProcessor(connect_front);
+        this->ConnectionProcessor(connect_back);
 
 #ifdef DEBUG
         std::cout << "Node " << new_id << " is successfully added." << std::endl;
@@ -399,9 +428,8 @@ void Genome::AddConnection(const unsigned int _Percent)
                 }
             }
             // if the connection does not exists, append it to the Connection Gene list
-            Connection new_connect(INNOV, iter->ID, out_node);
-            INNOV++;
-            this->Connections.push_back(new_connect);
+            Connection new_connect(0, iter->ID, out_node);
+            this->ConnectionProcessor(new_connect);
 
 #ifdef DEBUG
             std::cout << "Connection " << iter->ID << "-" << out_node << " is successfully added." << std::endl;
@@ -461,9 +489,8 @@ void Genome::AddConnection(const unsigned int _Percent)
                 // Check if the output is the output nodes: if yes, then must be VALID!
                 if(output_iter->Type == "output")
                 {
-                    Connection new_connect(INNOV, iter->ID, output_iter->ID);
-                    INNOV++;
-                    this->Connections.push_back(new_connect);
+                    Connection new_connect(0, iter->ID, output_iter->ID);
+                    this->ConnectionProcessor(new_connect);
 #ifdef DEBUG
                     std::cout << "Connection " << iter->ID << "-" << output_iter->ID << " is successfully added." << std::endl;
 #endif
@@ -484,9 +511,8 @@ void Genome::AddConnection(const unsigned int _Percent)
                 if(_PreCalculation(iter->ID, out_node, (cnt_input - 1)) == true)
                 {
                     // If pre-calc method passed, this connection can be formally added
-                    Connection new_connect(INNOV, iter->ID, out_node);
-                    INNOV++;
-                    this->Connections.push_back(new_connect);
+                    Connection new_connect(0, iter->ID, out_node);
+                    this->ConnectionProcessor(new_connect);
 #ifdef DEBUG
                     std::cout << "Connection " << iter->ID << "-" << out_node << " is successfully added." << std::endl;
 #endif
@@ -638,7 +664,7 @@ void Genome::PrintGenotype() const
 
     std::cout << "Connection Genes: " << std::endl;
     std::list<Connection>::const_iterator conn_iter = this->Connections.begin();
-    std::cout << "INNO" << "\t" << "IN" << "\t" << "OUT" << "\t" << "WEIGHT" << "\t\t" << "ENA" << std::endl;
+    std::cout << "INNOV" << "\t" << "IN" << "\t" << "OUT" << "\t" << "WEIGHT" << "\t\t" << "ENA" << std::endl;
     for(; conn_iter != this->Connections.end(); conn_iter++)
     {
         std::cout << std::fixed << std::setprecision(6);

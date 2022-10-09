@@ -83,6 +83,11 @@ private:
     void AddConnection(const unsigned int _Percent);
     bool _PreCalculation(const unsigned int _InputNode, const unsigned int _OutputNode, const unsigned int _InputNum) const;
 
+    // Check if the connection is in the INNOV_DATABASE
+    //      * If not, insert new connection and new INNOV number, and add to Connection Gene list
+    //      * If yes, add to Connection Gene list using the existing INNOV number
+    bool ConnectionProcessor(Connection new_connect);
+
 public:
     // Initialize a Genome with NO hidden units (minimal structure)
     // Initialize 1st generation
