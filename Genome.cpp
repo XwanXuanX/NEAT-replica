@@ -6,11 +6,38 @@ unsigned int INNOV = 0;                                        //
 /////////////////////////////////////////////////////////////////
 
 // Initialize a new node with initial value 0
-Node::Node(const unsigned short int _ID, const std::string _Type)
+Node::Node(const unsigned short int _ID, const std::string _Type, const ActFunc _Mode)
 {
     this->ID    = _ID;
     this->Type  = _Type;
     this->Val   = 0;
+    this->Mode  = _Mode;
+}
+
+// Activation functions are defined here
+static inline double act_Linear(const double x)
+{
+    return x;
+}
+
+static inline double act_Sigmoid(const double x)
+{
+    return (1.0 / (std::exp(-x) + 1.0));
+}
+
+static inline double act_Tanh(const double x)
+{
+    return std::tanh(x);
+}
+
+static inline double act_ReLU(const double x)
+{
+    return (x >= 0 ? x : 0);
+}
+
+static inline double act_Swish(const double x)
+{
+    return (x * act_Sigmoid(x));
 }
 
 // Initialize connection with random weights
@@ -55,13 +82,14 @@ void Connection::MUTEnable()
 
 // Initialize a Genome with NO hidden units (minimal structure)
 // Initialize 1st generation
-Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes)
+Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, const Node::ActFunc _OutputMode)
 {
     unsigned int node_added = 0;
     // Add input and output nodes to the Node Gene list
     for(; node_added < (_InputNodes + _OutputNodes); node_added++)
     {
-        Node new_node(node_added + 1, (node_added < _InputNodes) ? "input" : "output");
+        Node new_node(node_added + 1, (node_added < _InputNodes) ? "input" : "output", 
+                     (node_added < _InputNodes) ? Node::ActFunc::None : _OutputMode);
         this->Nodes.push_back(new_node);
     }
 
@@ -137,7 +165,7 @@ void Genome::MutateWeight(const unsigned int _Percent, const unsigned int _RNGPe
 }
 
 // Add a new node randomly
-void Genome::AddNode(const unsigned int _Percent)
+void Genome::AddNode(const unsigned int _Percent, const Node::ActFunc _HiddenMode)
 {
     if(_Percent > 100 || _Percent < 0)
     {
@@ -150,7 +178,7 @@ void Genome::AddNode(const unsigned int _Percent)
         // add a new node into the Node Gene list (at the very end)
         unsigned int new_id = this->Nodes.size();
         new_id += 1;
-        Node new_node(new_id, "hidden");
+        Node new_node(new_id, "hidden", _HiddenMode);
         this->Nodes.push_back(new_node);
 
         // randomly access a connection and disable it
@@ -460,7 +488,7 @@ void Genome::AddConnection(const unsigned int _Percent)
 // If you want to disable any type of mutation, just set the percent to 0
 void Genome::Mutate(const unsigned int _ToggleConnect_Percent, 
                     const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
-                    const unsigned int _AddNode_Percent, 
+                    const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
                     const unsigned int _AddConnection_Percent)
 {
     // Enable/Disable each connection randomly by a percent
@@ -470,7 +498,7 @@ void Genome::Mutate(const unsigned int _ToggleConnect_Percent,
     this->MutateWeight(_MutateWeight_Percent, _RNGPercent);
 
     // Add a new node randomly
-    this->AddNode(_AddNode_Percent);
+    this->AddNode(_AddNode_Percent, _HiddenMode);
 
     // Add a new connection randomly
     this->AddConnection(_AddConnection_Percent);
@@ -482,10 +510,21 @@ void Genome::PrintGenotype() const
     // Use iterator to travers the list
     std::cout << "Node Genes: " << std::endl;
     std::list<Node>::const_iterator node_iter = this->Nodes.begin();
-    std::cout << "ID" << "\t" << "TYPE" << "\t" << "VAL" << std::endl;
+    std::cout << "ID" << "\t" << "TYPE" << "\t" << "VAL" << "\t\t" << "AF" << std::endl;
     for(; node_iter != this->Nodes.end(); node_iter++)
     {
-        std::cout << node_iter->ID << "\t" << node_iter->Type << "\t" << node_iter->Val << std::endl;
+        std::string node_af{};
+        switch (node_iter->Mode)
+        {
+        case Node::ActFunc::None:       node_af = "None";       break;
+        case Node::ActFunc::Linear:     node_af = "Linear";     break;
+        case Node::ActFunc::Sigmoid:    node_af = "Sigmoid";    break;
+        case Node::ActFunc::Tanh:       node_af = "Tanh";       break;
+        case Node::ActFunc::Swish:      node_af = "Swish";      break;
+        default:                                                break;
+        }
+
+        std::cout << node_iter->ID << "\t" << node_iter->Type << "\t" << node_iter->Val << "\t" << node_af << std::endl;
     }
     std::cout << std::endl;
 

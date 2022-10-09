@@ -6,18 +6,33 @@
 #include <time.h>
 #include <iomanip>
 #include <vector>
+#include <cmath>
 
 // #define DEBUG
 
 // Node struct contains information of each node
 struct Node
 {
+    // List of activation functions
+    enum ActFunc{None, Linear, Sigmoid, Tanh, ReLU, Swish};
+
     unsigned short int  ID;     // The unique identification number of each node
     std::string         Type;   // The type of the node: Sensor/Hidden/Output
     double              Val;    // The value of the Node
+    ActFunc             Mode;   // The activation function the node use
 
     // Node default constructor
-    Node(const unsigned short int _ID, const std::string _Type);
+    Node(const unsigned short int _ID, const std::string _Type, const ActFunc _Mode);
+
+    // Activation functions are defined here
+    static double act_Linear(const double x);
+    static double act_Sigmoid(const double x);
+    static double act_Tanh(const double x);
+    static double act_ReLU(const double x);
+    static double act_Swish(const double x);
+
+    // Member function to select the type of activation function to use
+    void ApplyActFunc();
 };
 
 
@@ -61,7 +76,7 @@ private:
     void MutateWeight(const unsigned int _Percent, const unsigned int _RNGPercent);
 
     // Add a new node randomly
-    void AddNode(const unsigned int _Percent);
+    void AddNode(const unsigned int _Percent, const Node::ActFunc _HiddenMode);
 
     // Add a new connection randomly
     void AddConnection(const unsigned int _Percent);
@@ -70,7 +85,7 @@ private:
 public:
     // Initialize a Genome with NO hidden units (minimal structure)
     // Initialize 1st generation
-    Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes);
+    Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, const Node::ActFunc _OutputMode);
     // Initialize offsprings
     Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connections);
 
@@ -83,8 +98,11 @@ public:
     // If you want to disable any type of mutation, just set the percent to 0
     void Mutate(const unsigned int _ToggleConnect_Percent, 
                 const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
-                const unsigned int _AddNode_Percent, 
+                const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
                 const unsigned int _AddConnection_Percent);
+
+    // Propagate (a.k.a. calculate) the output of the network based on the given input
+    // double Propagate(double* _pInput) const;
 
     // Print the genotype of current genome to inspect
     void PrintGenotype() const;
