@@ -11,6 +11,32 @@ int main()
     Genome gene2(3, 1, Node::ActFunc::Linear);
     gene2.PrintGenotype();
 
+    std::cout << std::endl;
+
+    // Mutate gene1 randomly
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene1.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+
+    // Mutate gene2 randomly
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+    gene2.Mutate(0, 0, 0, 100, Node::ActFunc::Tanh, 100);
+
+    gene1.PrintGenotype();
+    std::cout << std::endl;
+    gene2.PrintGenotype();
+    
     /*
     double input[] = {1, 2, 3};
 
