@@ -8,8 +8,11 @@
 #include <vector>
 #include <cmath>
 #include <map>
+#include <algorithm>
 
-// #define DEBUG
+#define DEBUG
+#define PRECALC
+#define PROPAGATE
 
 // Node struct contains information of each node
 struct Node
@@ -34,6 +37,9 @@ struct Node
 
     // Member function to select the type of activation function to use
     void ApplyActFunc();
+
+    // Reload operator== to use find() function
+    bool operator==(const unsigned short int &_OtherID) const;
 };
 
 

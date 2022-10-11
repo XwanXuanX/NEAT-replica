@@ -62,6 +62,12 @@ void Node::ApplyActFunc()
     }
 }
 
+// Reload operator== to use find() function
+bool Node::operator==(const unsigned short int &_OtherID) const
+{
+    return (this->ID == _OtherID);
+}
+
 // Initialize connection with random weights
 Connection::Connection(const unsigned short int _Innov, const unsigned short int _In, const unsigned short int _Out)
 {
@@ -185,7 +191,7 @@ void Genome::ToggleConnect(const unsigned int _Percent)
         if(1 + (rand() % 100) <= _Percent)
         {
             iter->MUTEnable();
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
             std::cout << "Connection " << iter->In << "-" << iter->Out << ": Enable mutation completed." << std::endl;
 #endif
         }
@@ -211,7 +217,7 @@ void Genome::MutateWeight(const unsigned int _Percent, const unsigned int _RNGPe
             else                                     
                 iter->MUTWeight(false);
         }
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
         std::cout << "Genome connection weights mutation completed." << std::endl;
 #endif
     }
@@ -283,7 +289,7 @@ void Genome::AddNode(const unsigned int _Percent, const Node::ActFunc _HiddenMod
         this->ConnectionProcessor(connect_front);
         this->ConnectionProcessor(connect_back);
 
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
         std::cout << "Node " << new_node.ID << " is successfully added." << std::endl;
         std::cout << "Connection " << iter->In << "-" << new_node.ID << " is successfully added." << std::endl;
         std::cout << "Connection " << new_node.ID << "-" << iter->Out << " is successfully added. " << std::endl;
@@ -313,7 +319,7 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
     Connection new_connect(0, _InputNode, _OutputNode);
     tmpConnections.push_back(new_connect);  // push the fake connection into the list
 
-#ifdef DEBUG
+#if (defined DEBUG) && (defined PRECALC)
     for(unsigned int i = 0; i < tmpNodes.size(); i++)
         std::cout << tmpNodes[i].Val << " ";
     std::cout << std::endl;
@@ -334,11 +340,8 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
             std::list<Connection>::const_iterator iter = tmpConnections.begin();
             for(; iter != tmpConnections.end(); iter++)
             {
-#ifdef DEBUG
-                std::cout << iter->Enable << "\t" << iter->Out << "\t" << tmpNodes[node].ID << "\t"
-                          << tmpNodes[(iter->In) - 1].Val << std::endl;
-#endif
-                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val == 0.0)
+                std::vector<Node>::const_iterator node_finder = std::find(tmpNodes.begin(), tmpNodes.end(), iter->In);
+                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && node_finder->Val == 0.0)
                 {
                     isvalid = false; 
                     break;
@@ -356,16 +359,18 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
         bool should_exit = true;
         for(unsigned int i = 0; i < tmpNodes.size(); i++)
         {
-#ifdef DEBUG
+#if (defined DEBUG) && (defined PRECALC)
             std::cout << tmpNodes[i].Val << " ";
 #endif
             if(tmpNodes[i].Val == 0.0)
                 should_exit = false;
         }
+#if (defined DEBUG) && (defined PRECALC)
+        std::cout << std::endl;
+#endif
         if(should_exit == true)
         {
-#ifdef DEBUG
-            std::cout << std::endl;
+#if (defined DEBUG) && (defined PRECALC)
             std::cout << "Connection " << _InputNode << "-" << _OutputNode << " PASSES the pre-calc test in "
                       << recur << " iteration(s)." << std::endl;
 #endif
@@ -375,8 +380,7 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
             continue;
     }
 
-#ifdef DEBUG
-    std::cout << std::endl;
+#if (defined DEBUG) && (defined PRECALC)
     std::cout << "Connection " << _InputNode << "-" << _OutputNode << " FAILS the pre-calc test." << std::endl;
 #endif
     return false;
@@ -455,7 +459,7 @@ void Genome::AddConnection(const unsigned int _Percent)
                 if(input_node.ID == valid_iter->In && output_node.ID == valid_iter->Out)
                 {
                     valid_iter->MUTWeight(true);    // Only assign the connection a new weight
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
                     std::cout << "Connection " << input_node.ID << "-" << output_node.ID 
                               << " already exists. No connections were added." << std::endl;
 #endif
@@ -466,7 +470,7 @@ void Genome::AddConnection(const unsigned int _Percent)
             // if the connection does not exists, append it to the Connection Gene list
             Connection new_connect(0, input_node.ID, output_node.ID);
             this->ConnectionProcessor(new_connect);
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
             std::cout << "Connection " << input_node.ID << "-" << output_node.ID 
                       << " is successfully added." << std::endl;
 #endif
@@ -509,7 +513,7 @@ void Genome::AddConnection(const unsigned int _Percent)
                     if(input_node.ID == valid_iter->In && output_node.ID == valid_iter->Out)
                     {
                         valid_iter->MUTWeight(true);
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
                         std::cout << "Connection " << input_node.ID << "-" << output_node.ID
                                   << " already exists. No connections were added." << std::endl;
 #endif
@@ -523,7 +527,7 @@ void Genome::AddConnection(const unsigned int _Percent)
                 {
                     Connection new_connect(0, input_node.ID, output_node.ID);
                     this->ConnectionProcessor(new_connect);
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
                     std::cout << "Connection " << input_node.ID << "-" << output_node.ID 
                               << " is successfully added." << std::endl;
 #endif
@@ -547,7 +551,7 @@ void Genome::AddConnection(const unsigned int _Percent)
                     // If pre-calc method passed, this connection can be formally added
                     Connection new_connect(0, input_node.ID, output_node.ID);
                     this->ConnectionProcessor(new_connect);
-#ifdef DEBUG
+#if (defined DEBUG) && (defined MUTATION)
                     std::cout << "Connection " << input_node.ID << "-" << output_node.ID 
                               << " is successfully added." << std::endl;
 #endif
@@ -584,31 +588,32 @@ void Genome::Mutate(const unsigned int _ToggleConnect_Percent,
 // Propagate (a.k.a. calculate) the output of the network based on the given input
 std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _InputLength) const
 {
+    // To randomly access each node more efficiently, transfer all nodes into vector
+    std::vector<Node> tmpNodes;
+    std::list<Node>::const_iterator node_iter = this->Nodes.begin();
+    for(; node_iter != this->Nodes.end(); node_iter++)
+    {
+        tmpNodes.push_back(*node_iter);
+    }
+
     // Check if the _InputLength is equal to the number of input nodes
     unsigned int cnt_input = 0; // the counter variable counts the number of input nodes
-    std::list<Node>::const_iterator node_iter = this->Nodes.begin();
-    for(; node_iter->Type == "input"; cnt_input++)
+    for(unsigned int i = 0; i < tmpNodes.size(); i++)
     {
-        node_iter++;
+        if(tmpNodes[i].Type == "input")
+            cnt_input += 1;
     }
     if(_InputLength != cnt_input)
         // if the input nodes and the input length does not match, exit immediately
         throw std::domain_error("BAD INPUT LENGTH!");
 
-    // To randomly access each node more efficiently, transfer all nodes into vector
-    std::vector<Node> tmpNodes;
-    node_iter = this->Nodes.begin();
-    for(; node_iter != this->Nodes.end(); node_iter++)
-    {
-        tmpNodes.push_back(*node_iter);
-    }
     // Place each input sequentially into each input nodes
     for(std::size_t i = 0; i < _InputLength; i++)
     {
         tmpNodes[i].Val = _pInputs[i];
     }
 
-#ifdef DEBUG
+#if (defined DEBUG) && (defined PROPAGATE)
     for(unsigned int i = 0; i < tmpNodes.size(); i++)
         std::cout << tmpNodes[i].Val << " ";
     std::cout << std::endl;
@@ -631,13 +636,14 @@ std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _Input
             std::list<Connection>::const_iterator iter = this->Connections.begin();
             for(; iter != this->Connections.end(); iter++)
             {
-                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val == 0.0)
+                std::vector<Node>::const_iterator node_finder = std::find(tmpNodes.begin(), tmpNodes.end(), iter->In);
+                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && node_finder->Val == 0.0)
                 {
                     isvalid = false;
                     break;
                 }
-                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && tmpNodes[(iter->In) - 1].Val != 0.0)
-                    Input_Weight.insert(std::pair<double, double>(tmpNodes[(iter->In) - 1].Val, iter->Weight));
+                if(iter->Enable == true && iter->Out == tmpNodes[node].ID && node_finder->Val != 0.0)
+                    Input_Weight.insert(std::pair<double, double>(node_finder->Val, iter->Weight));
             }
             
             if(!isvalid)
@@ -659,6 +665,9 @@ std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _Input
         outputs.clear();
         for(unsigned int i = 0; i < tmpNodes.size(); i++)
         {
+#if (defined DEBUG) && (defined PROPAGATE)
+            std::cout << tmpNodes[i].Val << " ";
+#endif
             // Push the value of the output nodes into a vector and return it
             if(tmpNodes[i].Type == "output")
                 outputs.push_back(tmpNodes[i].Val);
@@ -666,11 +675,22 @@ std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _Input
             if(tmpNodes[i].Val == 0.0)
                 should_exit = false;
         }
+#if (defined DEBUG) && (defined PROPAGATE)
+        std::cout << std::endl;
+#endif
         if(should_exit == true)
+        {
+#if (defined DEBUG) && (defined PROPAGATE)
+            std::cout << "Output was calculated in " << recur << " times." << std::endl;
+#endif
             return outputs;
+        }
         else
             continue;
     }
+#if (defined DEBUG) && (defined PROPAGATE)
+    std::cout << "ERROR: output not returned properly." << std::endl;
+#endif
     return outputs;
 }
 
