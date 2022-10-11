@@ -12,7 +12,7 @@ int main()
 
     std::cout << std::endl;
 
-    for(unsigned int i = 0; i < 3; i++)
+    for(unsigned int i = 0; i < 5; i++)
     {
         // Mutate gene1 randomly
         gene1.Mutate(0, 50, 50, 100, Node::ActFunc::Linear, 100);
@@ -30,9 +30,9 @@ int main()
     std::cout << std::endl;
 
     out = gene2.Propagate(input1, 3);
-    //for(unsigned int i = 0; i < out.size(); i++)
-    //   std::cout << out[i] << " ";
-    //std::cout << std::endl;
+    for(unsigned int i = 0; i < out.size(); i++)
+       std::cout << out[i] << " ";
+    std::cout << std::endl;
 
     return 0;
 }

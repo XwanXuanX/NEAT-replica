@@ -11,7 +11,6 @@
 #include <algorithm>
 
 #define DEBUG
-#define PRECALC
 #define PROPAGATE
 
 // Node struct contains information of each node
