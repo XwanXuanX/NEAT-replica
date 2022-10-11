@@ -108,6 +108,12 @@ void Connection::MUTEnable()
     this->Enable = !(this->Enable);
 }
 
+// Reload operator< to use sort() function on Connection list
+bool Connection::operator<(const Connection &_OtherConnection) const
+{
+    return (this->Innov < _OtherConnection.Innov);
+}
+
 // Initialize a Genome with NO hidden units (minimal structure)
 // Initialize 1st generation
 Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, const Node::ActFunc _OutputMode)
@@ -692,6 +698,108 @@ std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _Input
     std::cout << "ERROR: output not returned properly." << std::endl;
 #endif
     return outputs;
+}
+
+// Calculate the compatibility distance between two genomes
+double Genome::CompatDistance(const Genome &_Other, const double c1, const double c2, const double c3, const unsigned int _Normalize_Threshold) const
+{
+    // Seperate the Connection Genes into different list for access later
+    std::list<Connection> this_connect = this->Connections;
+    std::list<Connection> other_connect = _Other.Connections;
+
+    // Before modifying any list, record the param N
+    unsigned int N = ((this_connect.size() >= other_connect.size()) ? this_connect.size() : other_connect.size());
+    if(N < _Normalize_Threshold)
+        N = 1;
+
+    // Sort these two vectors according to innovation numbers in accending order
+    this_connect.sort();
+    other_connect.sort();
+
+#if (defined DEBUG) && (defined COMPAT)
+    auto InspectVals = [](auto this_connect, auto other_connect) -> void
+    {
+        for(auto tmpIter = this_connect.begin(); tmpIter != this_connect.end(); tmpIter++)
+            std::cout << tmpIter->Innov << " ";
+        std::cout << std::endl;
+        for(auto tmpIter = other_connect.begin(); tmpIter != other_connect.end(); tmpIter++)
+            std::cout << tmpIter->Innov << " ";
+        std::cout << std::endl;
+        std::cout << std::endl;
+    };
+
+    InspectVals(this_connect, other_connect);
+#endif
+
+    // Find the number of excess genes
+    std::list<Connection>::reverse_iterator this_iter = this_connect.rbegin();
+    std::list<Connection>::reverse_iterator other_iter = other_connect.rbegin();
+
+    // Define a lambda expression to calculate the number of excess genes
+    auto CalcExcess = [] (std::list<Connection> *Ex_connect, unsigned int min_innov) -> unsigned int
+    {
+        unsigned int ExcessGenes = 0;
+        auto connect_iter = Ex_connect->rbegin();
+        while(connect_iter != Ex_connect->rend())
+        {
+            if(connect_iter->Innov > min_innov)
+            {
+                ExcessGenes += 1;
+                Ex_connect->pop_back();
+            }
+            else
+                break;
+            connect_iter = Ex_connect->rbegin();
+        }
+        return ExcessGenes;
+    };
+
+    // Only find excess genes when two innovation numbers are different
+    unsigned int Excess = 0;
+    if(this_iter->Innov > other_iter->Innov)
+        Excess = CalcExcess(&this_connect, other_iter->Innov);
+    else if(this_iter->Innov < other_iter->Innov)
+        Excess = CalcExcess(&other_connect, this_iter->Innov);
+
+#if (defined DEBUG) && (defined COMPAT)
+    InspectVals(this_connect, other_connect);
+    std::cout << "Excess = " << Excess << std::endl;
+#endif
+
+    // Use the remaining lists to find the matching genes first
+    double Matching = 0;
+    unsigned int _matching_num = 0;
+    double _total_diff = 0;
+    for(auto this_iter = this_connect.begin(); this_iter != this_connect.end(); this_iter++)
+    {
+        for(auto other_iter = other_connect.begin(); other_iter != other_connect.end(); other_iter++)
+        {
+            if(this_iter->Innov == other_iter->Innov)
+            {
+                _matching_num += 1;
+                _total_diff += std::abs(this_iter->Weight - other_iter->Weight);
+            }
+        }
+    }
+    Matching = _total_diff / _matching_num;
+
+#if (defined DEBUG) && (defined COMPAT)
+    std::cout << "Matching = " << Matching << std::endl;
+#endif
+
+    // Finally find the number of Disjoint genes
+    unsigned int Disjoint = 0;
+    Disjoint = (this_connect.size() - _matching_num) + (other_connect.size() - _matching_num);
+
+#if (defined DEBUG) && (defined COMPAT)
+    std::cout << "Disjoint = " << Disjoint << std::endl;
+#endif
+
+    // Calculate the compatibility distance
+    double CompatDistance = \
+        (c1 * Excess / N) + (c2 * Disjoint / N) + (c3 * Matching);
+
+    return CompatDistance;
 }
 
 // Print the genotype of current genome to inspect

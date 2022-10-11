@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #define DEBUG
-#define PROPAGATE
+// #define COMPAT
 
 // Node struct contains information of each node
 struct Node
@@ -66,6 +66,9 @@ struct Connection
 
     // Mutate enable: toggle the enabled state of the connection
     void MUTEnable();
+
+    // Reload operator< to use sort() function on Connection list
+    bool operator<(const Connection &_OtherConnection) const;
 };
 
 
@@ -114,6 +117,11 @@ public:
 
     // Propagate (a.k.a. calculate) the output of the network based on the given input
     std::vector<double> Propagate(double* _pInputs, const std::size_t _InputLength) const;
+
+    // Calculate the compatibility distance between two genomes
+    double CompatDistance(const Genome &_Other, 
+                          const double c1, const double c2, const double c3, 
+                          const unsigned int _Normalize_Threshold = 20) const;
 
     // Print the genotype of current genome to inspect
     void PrintGenotype() const;
