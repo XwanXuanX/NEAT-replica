@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #define DEBUG
-// #define COMPAT
+#define CROSSOVER
 
 // Node struct contains information of each node
 struct Node
@@ -39,6 +39,10 @@ struct Node
 
     // Reload operator== to use find() function
     bool operator==(const unsigned short int &_OtherID) const;
+    bool operator==(const Node &_OtherNode) const;
+
+    // Reload operator< to use sort() function on node gene list
+    bool operator<(const Node &_OtherNode) const;
 };
 
 
@@ -69,6 +73,9 @@ struct Connection
 
     // Reload operator< to use sort() function on Connection list
     bool operator<(const Connection &_OtherConnection) const;
+
+    // Reload operator== to use find() function on Connection innovation numbers
+    bool operator==(const Connection &_OtherConnection) const;
 };
 
 
@@ -122,6 +129,9 @@ public:
     double CompatDistance(const Genome &_Other, 
                           const double c1, const double c2, const double c3, 
                           const unsigned int _Normalize_Threshold = 20) const;
+
+    // Crossover (a.k.a. breed) between two genomes
+    Genome Crossover(const Genome &_Other, const double this_fitness, const double other_fitness) const;
 
     // Print the genotype of current genome to inspect
     void PrintGenotype() const;

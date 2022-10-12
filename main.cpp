@@ -8,7 +8,7 @@ int main()
     Genome gene1(3, 1, Node::ActFunc::Linear);
     Genome gene2(3, 1, Node::ActFunc::Linear);
 
-    for(unsigned int i = 0; i < 3; i++)
+    for(unsigned int i = 0; i < 2; i++)
     {
         // Mutate gene1 randomly
         gene1.Mutate(0, 50, 50, 100, Node::ActFunc::Linear, 100);
@@ -19,7 +19,7 @@ int main()
     std::cout << std::endl;
     gene2.PrintGenotype();
 
-    std::cout << gene1.CompatDistance(gene2, 1, 1, 1, 10);
+    gene1.Crossover(gene2, 2, 2);
 
     /*
     Genome gene3(3, 1, Node::ActFunc::Linear);

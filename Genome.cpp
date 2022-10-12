@@ -68,6 +68,17 @@ bool Node::operator==(const unsigned short int &_OtherID) const
     return (this->ID == _OtherID);
 }
 
+bool Node::operator==(const Node &_OtherNode) const
+{
+    return (this->ID == _OtherNode.ID);
+}
+
+// Reload operator< to use sort() function on node gene list
+bool Node::operator<(const Node &_OtherNode) const
+{
+    return (this->ID < _OtherNode.ID);
+}
+
 // Initialize connection with random weights
 Connection::Connection(const unsigned short int _Innov, const unsigned short int _In, const unsigned short int _Out)
 {
@@ -106,12 +117,36 @@ void Connection::MUTWeight(const bool _isRNG)
 void Connection::MUTEnable()
 {
     this->Enable = !(this->Enable);
+
+    // Goal: Prevent the node with the same ID present when spliting the same connection
+    // Two circumstances here: A connection enable bit can:
+    //      * True -> False: No issue; a false connection will not evolve a new node
+    //      * False -> True:
+    //          * If the connection was added to the database, delete the record
+    //          * If the connection was not in the database, ignore
+    if(this->Enable == true)
+    {
+        for(auto map_iter = NODE_DATABASE.begin(); map_iter != NODE_DATABASE.end(); map_iter++)
+        {
+            if(this->In == map_iter->second.In && this->Out == map_iter->second.Out)
+            {
+                NODE_DATABASE.erase(map_iter);
+                break;
+            }
+        }
+    }
 }
 
 // Reload operator< to use sort() function on Connection list
 bool Connection::operator<(const Connection &_OtherConnection) const
 {
     return (this->Innov < _OtherConnection.Innov);
+}
+
+// Reload operator== to use find() function on Connection innovation numbers
+bool Connection::operator==(const Connection &_OtherConnection) const
+{
+    return (this->Innov == _OtherConnection.Innov);
 }
 
 // Initialize a Genome with NO hidden units (minimal structure)
@@ -800,6 +835,76 @@ double Genome::CompatDistance(const Genome &_Other, const double c1, const doubl
         (c1 * Excess / N) + (c2 * Disjoint / N) + (c3 * Matching);
 
     return CompatDistance;
+}
+
+// Crossover (a.k.a. breed) between two genomes
+Genome Genome::Crossover(const Genome &_Other, const double this_fitness, const double other_fitness) const
+{
+    std::list<Connection> this_connect = this->Connections;
+    std::list<Connection> other_connect = _Other.Connections;
+
+    auto AssignMatching = [] (std::list<Connection> *_New, const std::list<Connection> &_Else) -> void
+    {
+        for(auto new_iter = _New->begin(); new_iter != _New->end(); new_iter++)
+        {
+            for(auto else_iter = _Else.begin(); else_iter != _Else.end(); else_iter++)
+            {
+                if(new_iter->Innov == else_iter->Innov && (1 + (rand() % 100)) <= 50)
+                    new_iter->Weight = else_iter->Weight;
+            }
+        }
+    };
+
+    // Three circumstances: this more fit; other more fit; both equally fit
+    // This genome is more fit than other genome
+    if(this_fitness > other_fitness)
+    {
+        AssignMatching(&this_connect, other_connect);
+        Genome new_Genome(this->Nodes, this_connect);
+#if (defined DEBUG) && (defined CROSSOVER)
+        new_Genome.PrintGenotype();
+#endif
+        return new_Genome;
+    }
+    // Other genome is more fit than this genome
+    else if(this_fitness < other_fitness)
+    {
+        AssignMatching(&other_connect, this_connect);
+        Genome new_Genome(_Other.Nodes, other_connect);
+#if (defined DEBUG) && (defined CROSSOVER)
+        new_Genome.PrintGenotype();
+#endif
+        return new_Genome;
+    }
+    // Both genomes are equally fit
+    else
+    {
+        // Modify the matching genes and inherit the E/D genes from ANYONE regardless of fitness
+        AssignMatching(&this_connect, other_connect);
+
+        // Merge the E/D genes from another parent
+        for(auto other_iter = other_connect.begin(); other_iter != other_connect.end(); other_iter++)
+        {
+            // Check if the connection already exist in this_connection
+            std::list<Connection>::iterator tmpIter = std::find(this_connect.begin(), this_connect.end(), *other_iter);
+            if(tmpIter == this_connect.end())   // If not found;
+                this_connect.push_back(*other_iter);
+        }
+
+        // Derive the node genes from the connection genes
+        std::list<Node> new_nodes(this->Nodes);
+        std::list<Node> other_nodes(_Other.Nodes);
+        new_nodes.merge(other_nodes);   // Merge the two node gene list together
+        new_nodes.unique();             // Delete repeated nodes
+        new_nodes.sort();               // Sort the node gene list in ascending order
+
+        // Create new Genome
+        Genome new_Genome(new_nodes, this_connect);
+#if (defined DEBUG) && (defined CROSSOVER)
+        new_Genome.PrintGenotype();
+#endif
+        return new_Genome;
+    }
 }
 
 // Print the genotype of current genome to inspect
