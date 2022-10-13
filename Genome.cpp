@@ -895,8 +895,27 @@ Genome Genome::Crossover(const Genome &_Other, const double this_fitness, const 
         std::list<Node> new_nodes(this->Nodes);
         std::list<Node> other_nodes(_Other.Nodes);
         new_nodes.merge(other_nodes);   // Merge the two node gene list together
-        new_nodes.unique();             // Delete repeated nodes
         new_nodes.sort();               // Sort the node gene list in ascending order
+        new_nodes.unique();             // Delete repeated nodes
+
+        // To prevent from naming different node with the same ID, delete the record from database
+        for(auto cnt_iter = this_connect.begin(); cnt_iter != this_connect.end(); cnt_iter++)
+        {
+            if(cnt_iter->Enable == false)
+                continue;
+            else
+            {
+                std::map<unsigned int, Connection>::iterator node_finder = NODE_DATABASE.begin();
+                for(; node_finder != NODE_DATABASE.end(); node_finder++)
+                {
+                    if(cnt_iter->In == node_finder->second.In && cnt_iter->Out == node_finder->second.Out)
+                    {
+                        NODE_DATABASE.erase(node_finder);
+                        break;
+                    }
+                }
+            }
+        }
 
         // Create new Genome
         Genome new_Genome(new_nodes, this_connect);
@@ -942,7 +961,6 @@ void Genome::PrintGenotype() const
                   << ((conn_iter->Enable) ? "True" : "False") << std::endl;
     }
 }
-
 
 // Getters (if need any)
 std::list<Node> Genome::getNodes() const
