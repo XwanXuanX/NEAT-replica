@@ -10,7 +10,7 @@
                 "-g",
                 "main.cpp",
                 "Genome.cpp",
-                "Model.cpp",
+                "Species.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
