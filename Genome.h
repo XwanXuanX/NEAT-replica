@@ -84,6 +84,7 @@ class Genome
 private:
     std::list<Node>         Nodes;          // Node Genes list
     std::list<Connection>   Connections;    // Connection Genes list
+    double                  Fitness;        // The fitness of the genome
 
     // Enable/Disable each connection randomly by a percent
     void ToggleConnect(const unsigned int _Percent);
@@ -133,12 +134,19 @@ public:
     // Crossover (a.k.a. breed) between two genomes
     Genome Crossover(const Genome &_Other, const double this_fitness, const double other_fitness) const;
 
+    // Calculate adjusted fitness
+    void CalcAdjFitness(const unsigned int _Species_Num);
+
     // Print the genotype of current genome to inspect
     void PrintGenotype() const;
 
     // Getters (if need any)
     std::list<Node> getNodes() const;
     std::list<Connection> getConnections() const;
+    double getFitness() const;
+
+    // Setters (Only need for fitness; need to assign fitness from outside)
+    void setFitness(const double _Fitness);
 };
 
 #endif

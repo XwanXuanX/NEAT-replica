@@ -171,6 +171,9 @@ Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, 
             this->ConnectionProcessor(new_connect);
         }
     }
+
+    // Initialize fitness to be 0
+    this->Fitness = 0;
 }
 
 // Initialize offsprings
@@ -178,6 +181,7 @@ Genome::Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connec
 {
     this->Nodes       = _Nodes;
     this->Connections = _Connections;
+    this->Fitness     = 0;
 }
 
 // Check if the connection is in the INNOV_DATABASE
@@ -926,6 +930,12 @@ Genome Genome::Crossover(const Genome &_Other, const double this_fitness, const 
     }
 }
 
+// Calculate adjusted fitness
+void Genome::CalcAdjFitness(const unsigned int _Species_Num)
+{
+    this->Fitness = this->Fitness / _Species_Num;
+}
+
 // Print the genotype of current genome to inspect
 void Genome::PrintGenotype() const
 {
@@ -971,4 +981,15 @@ std::list<Node> Genome::getNodes() const
 std::list<Connection> Genome::getConnections() const
 {
     return this->Connections;
+}
+
+double Genome::getFitness() const
+{
+    return this->Fitness;
+}
+
+// Setters (Only need for fitness; need to assign fitness from outside)
+void Genome::setFitness(const double _Fitness)
+{
+    this->Fitness = _Fitness;
 }
