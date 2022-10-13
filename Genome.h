@@ -10,9 +10,6 @@
 #include <map>
 #include <algorithm>
 
-#define DEBUG
-#define CROSSOVER
-
 // Node struct contains information of each node
 struct Node
 {
@@ -110,6 +107,8 @@ public:
     Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, const Node::ActFunc _OutputMode);
     // Initialize offsprings
     Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connections);
+    // Default constructor (fixed unknown issues in Species.cpp)
+    Genome() = default;
 
     // Mutate the Genome in five possible ways
     //      * Add connection            (Done)
