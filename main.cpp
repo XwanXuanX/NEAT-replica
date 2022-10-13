@@ -1,10 +1,11 @@
-#include "Genome.h"
-#include <windows.h>
+#include "Model.h"
 
 int main()
 {
     srand((unsigned int)time(NULL));
 
+	
+	/*
     Genome gene1(3, 1, Node::ActFunc::Linear);
     Genome gene2(3, 1, Node::ActFunc::Linear);
 
@@ -40,6 +41,7 @@ int main()
     std::cout << gene1.CompatDistance(gene3, 1, 1, 1, 0);
 
     return 0;
+	*/
 }
 
 /*
