@@ -4,7 +4,21 @@ int main()
 {
     srand((unsigned int)time(NULL));
 
-	
+	CompatDistParams params(1, 1, 1, 1);
+
+	Genome gene1(2, 1, Node::ActFunc::Linear);
+	Genome gene2(gene1);
+	Genome gene3(gene2);
+
+	gene1.setFitness(1);
+	gene2.setFitness(2);
+	gene3.setFitness(3);
+
+	Species spe(gene1);
+	spe.AddOrganism(gene2, 1.0, params);
+	spe.AddOrganism(gene3, 1.0, params);
+
+	spe.Reproduce(13, 0.3);
 	/*
     Genome gene1(3, 1, Node::ActFunc::Linear);
     Genome gene2(3, 1, Node::ActFunc::Linear);

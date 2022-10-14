@@ -25,25 +25,28 @@ private:
     std::vector<Genome> Organisms;  // The list of genomes within the species
 
 public:
-    // Constructor: Initialize a new species with a genome
+    // Constructor: Initialize a new species with a genome (Pass)
     Species(const Genome _NewGenome);
 
-    // Check if a genome should be added to this species; if yes, add and return true
+    // Check if a genome should be added to this species; if yes, add and return true (Pass)
     bool AddOrganism(const Genome _NewGenome, const double _CompatThreshold, const CompatDistParams _Params);
     
-    // Calculate the adjusted fitness for every organisms in the species
+    // Calculate the adjusted fitness for every organisms in the species (Pass)
     void CalcAdjFitness();
 
-    // Clear species for later generations
+    // Clear species for later generations (Pass)
     void ClearSpecies();
 
-    // Crossover to produce certain number of offsprings
-    std::vector<Genome> Reproduce(const unsigned int _Num_Offsprings) const;
+    // Crossover to produce certain number of offsprings (Pass)
+    std::vector<Genome> Reproduce(const unsigned int _Num_Offsprings, const double _Kill_Percent);
 
-    // Get the total adjusted fitness of the species
+    // Get the total adjusted fitness of the species (Pass)
     double TotalAdjFitness() const;
 
-    // Getters (if need any)
+    // Print basic information about the species (Pass)
+    void PrintSpeciesInfo() const;
+
+    // Getters (if need any) (Pass)
     Genome getRepresent() const;
     std::vector<Genome> getOrganisms() const;
 };
