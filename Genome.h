@@ -146,6 +146,9 @@ public:
 
     // Setters (Only need for fitness; need to assign fitness from outside)
     void setFitness(const double _Fitness);
+
+    // Overload operator> to sort genomes in descending order
+    bool operator>(const Genome &_OtherGenome) const;
 };
 
 #endif

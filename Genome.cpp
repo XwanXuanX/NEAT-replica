@@ -993,3 +993,9 @@ void Genome::setFitness(const double _Fitness)
 {
     this->Fitness = _Fitness;
 }
+
+// Overload operator> to sort genomes in descending order
+bool Genome::operator>(const Genome &_OtherGenome) const
+{
+    return (this->Fitness > _OtherGenome.Fitness);
+}
