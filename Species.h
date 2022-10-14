@@ -3,9 +3,6 @@
 
 #include "Genome.h"
 
-#define DEBUG
-#define REPRODUCE
-
 // This struct contains necessary params for calculating Compat Distance function
 struct CompatDistParams
 {
