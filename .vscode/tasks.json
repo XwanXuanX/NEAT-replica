@@ -11,6 +11,7 @@
                 "main.cpp",
                 "Genome.cpp",
                 "Species.cpp",
+                "Generation.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
