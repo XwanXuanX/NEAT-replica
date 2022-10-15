@@ -45,6 +45,9 @@ private:
     Genome              Represent;  // The genome used to represent the entire species
     std::vector<Genome> Organisms;  // The list of genomes within the species
 
+    double              MaxFit;     // The maximum fitness of the species
+    unsigned int        MaxFitGen;  // The number of generations which the max fitness remain unchanged
+
 public:
     // Constructor: Initialize a new species with a genome (Pass)
     Species(const Genome _NewGenome);
@@ -70,9 +73,18 @@ public:
     // Print basic information about the species (Pass)
     void PrintSpeciesInfo() const;
 
+    // Update the Maximum fitness and its generation number
+    bool CheckMaxFitGen(const unsigned int _Threshold_Gen);
+
     // Getters (if need any) (Pass)
     Genome getRepresent() const;
     std::vector<Genome> getOrganisms() const;
+    double getMaxFit() const;
+    unsigned int getMaxFitGen() const;
+
+    // Setters (if need any)
+    void setMaxFit(const double _NewMaxFit);
+    void setMaxFitGen(const unsigned int _NewMaxFitGen);
 };
 
 #endif

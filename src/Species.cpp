@@ -28,6 +28,8 @@ Species::Species(const Genome _NewGenome)
     // When a new species is created, the first genome will be the represent
     this->Represent = _NewGenome;
     this->Organisms.push_back(_NewGenome);
+    this->MaxFit = 0;
+    this->MaxFitGen = 0;
 }
 
 // Check if a genome should be added to this species; if yes, add and return true
@@ -241,6 +243,31 @@ void Species::PrintSpeciesInfo() const
               << std::endl;
 }
 
+// Update the Maximum fitness and its generation number
+bool Species::CheckMaxFitGen(const unsigned int _Threshold_Gen)
+{
+    // The maximum fitness of current generation
+    double max_fitness = this->Organisms.at(0).getFitness();
+    for(unsigned int i = 0; i < this->Organisms.size(); i++)
+    {
+        if(this->Organisms.at(i).getFitness() > max_fitness)
+            max_fitness = this->Organisms.at(i).getFitness();
+    }
+
+    if(max_fitness <= this->MaxFit)
+        this->MaxFitGen += 1;
+    else
+    {
+        this->MaxFit = max_fitness;
+        this->MaxFitGen = 0;
+    }
+
+    if(MaxFitGen >= _Threshold_Gen)
+        return false;
+    else 
+        return true;
+}
+
 // Getters (if need any)
 Genome Species::getRepresent() const
 {
@@ -250,4 +277,25 @@ Genome Species::getRepresent() const
 std::vector<Genome> Species::getOrganisms() const
 {
     return this->Organisms;
+}
+
+double Species::getMaxFit() const
+{
+    return this->MaxFit;
+}
+
+unsigned int Species::getMaxFitGen() const
+{
+    return this->MaxFitGen;
+}
+
+// Setters (if need any)
+void Species::setMaxFit(const double _NewMaxFit)
+{
+    this->MaxFit = _NewMaxFit;
+}
+
+void Species::setMaxFitGen(const unsigned int _NewMaxFitGen)
+{
+    this->MaxFitGen = _NewMaxFitGen;
 }
