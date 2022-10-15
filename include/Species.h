@@ -81,10 +81,7 @@ public:
     std::vector<Genome> getOrganisms() const;
     double getMaxFit() const;
     unsigned int getMaxFitGen() const;
-
-    // Setters (if need any)
-    void setMaxFit(const double _NewMaxFit);
-    void setMaxFitGen(const unsigned int _NewMaxFitGen);
+    unsigned int getSpeciesSize() const;
 };
 
 #endif

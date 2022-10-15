@@ -289,13 +289,7 @@ unsigned int Species::getMaxFitGen() const
     return this->MaxFitGen;
 }
 
-// Setters (if need any)
-void Species::setMaxFit(const double _NewMaxFit)
+unsigned int Species::getSpeciesSize() const
 {
-    this->MaxFit = _NewMaxFit;
-}
-
-void Species::setMaxFitGen(const unsigned int _NewMaxFitGen)
-{
-    this->MaxFitGen = _NewMaxFitGen;
+    return this->Organisms.size();
 }
