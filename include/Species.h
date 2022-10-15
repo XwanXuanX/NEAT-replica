@@ -4,9 +4,6 @@
 #include "Genome.h"
 #include <cassert>
 
-#define DEBUG
-#define REPRODUCE
-
 // This struct contains necessary params for calculating Compat Distance function
 struct CompatDistParams
 {
@@ -33,8 +30,7 @@ struct MutateParams
 
     // Probability to add a connection
     unsigned int AddConnection_Percent;
-
-    // Constructor to initialize the structure
+    
     MutateParams(const unsigned int _ToggleConnect_Percent, 
                  const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
                  const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 

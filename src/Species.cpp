@@ -9,7 +9,6 @@ CompatDistParams::CompatDistParams(const double _c1, const double _c2, const dou
     this->NormalThreshold = _NormalThreshold;
 }
 
-// Constructor to initialize the structure
 MutateParams::MutateParams(const unsigned int _ToggleConnect_Percent, 
                            const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
                            const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
@@ -131,10 +130,17 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
     // Select the best organisms to crossover
     //      * Some resulted from sexual reproduction: Crossover
     //      * Some resulted from asexual reproduction: Mutation
-    unsigned int by_mutation = std::floor(_Num_Offsprings * _Mut_Percent);
-    unsigned int by_crossover = _Num_Offsprings - by_mutation;
+    unsigned int by_crossover = 0;
+    unsigned int by_mutation = std::floor(_Num_Offsprings * _Mut_Percent); 
+    assert(by_mutation >= 0);
+    if(Offsprings.size() == 0)
+        by_crossover = _Num_Offsprings - by_mutation;
+    else
+        by_crossover = (_Num_Offsprings - 1) - by_mutation;
+
     if(by_crossover > 0)
     {
+        unsigned int added = 0;
         while(true)
         {
             // If the species contains only one member, self crossover is allowed
@@ -143,11 +149,12 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
                 Genome Self = this->Organisms.at(0);
                 Genome new_genome = Self.Crossover(Self, Self.getFitness(), Self.getFitness());
                 Offsprings.push_back(new_genome);
+                added++;
 #if (defined DEBUG) && (defined REPRODUCE)
                 std::cout << Offsprings.size() << ": New genome created by self-crossover" << std::endl;
 #endif
                 // Check if enough offsprings are bread
-                if((Offsprings.size() - 1) >= by_crossover)
+                if(added >= by_crossover)
                     break;
                 continue;
             }
@@ -159,27 +166,31 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
                     for(unsigned int j = i + 1; j < this->Organisms.size(); j++)
                     {
                         Genome new_genome = this->Organisms.at(i).Crossover(this->Organisms.at(j),
-                                                            this->Organisms.at(i).getFitness(),
-                                                            this->Organisms.at(j).getFitness());
+                            this->Organisms.at(i).getFitness(), this->Organisms.at(j).getFitness());
                         Offsprings.push_back(new_genome);
+                        added++;
 #if (defined DEBUG) && (defined REPRODUCE)
                         std::cout << Offsprings.size() << ": New genome created by crossing-over "
                                 << i + 1 << " and " << j + 1 << std::endl;
 #endif
-                        if((Offsprings.size() - 1) >= by_crossover)
+                        if(added >= by_crossover)
                         {
                             should_exit = true;
                             break;
                         }
-                        continue;
-                    } if(should_exit) break;
-                } if(should_exit) break;
+                    }
+                    if(should_exit)
+                        break;
+                }
+                if(should_exit)
+                    break;
             }
         }
     }
 
     if(by_mutation > 0)
     {
+        unsigned int added = 0;
         while(true)
         {
             for(unsigned int i = 0; i < this->Organisms.size(); i++)
@@ -188,17 +199,21 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
                     _Params.MutateWeight_Percent, _Params.RNGPercent, _Params.AddNode_Percent,
                     _Params.HiddenMode, _Params.AddConnection_Percent);
                 Offsprings.push_back(this->Organisms.at(i));
+                added++;
 #if (defined DEBUG) && (defined REPRODUCE)
                 std::cout << Offsprings.size() << ": New genome created by mutating "
                           << i + 1 << std::endl;
 #endif
-                if(Offsprings.size() >= _Num_Offsprings)
+                if(added >= by_mutation)
+                {
+                    assert(Offsprings.size() == _Num_Offsprings);
                     return Offsprings;
+                }
             }
         }
     }
 
-    assert(Offsprings.size() == by_crossover + 1);
+    assert(Offsprings.size() == _Num_Offsprings);
     return Offsprings;
 }
 
