@@ -8,20 +8,6 @@ GenomeLayout::GenomeLayout(const unsigned int _InputNodes, const unsigned int _O
     this->OutputMode = _OutputMode;
 }
 
-// Constructor to initialize the structure
-MutateParams::MutateParams(const unsigned int _ToggleConnect_Percent, 
-                           const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
-                           const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
-                           const unsigned int _AddConnection_Percent)
-{
-    this->ToggleConnect_Percent = _ToggleConnect_Percent;
-    this->MutateWeight_Percent  = _MutateWeight_Percent;
-    this->RNGPercent            = _RNGPercent;
-    this->AddNode_Percent       = _AddNode_Percent;
-    this->HiddenMode            = _HiddenMode;
-    this->AddConnection_Percent = _AddConnection_Percent;
-}
-
 // Constructor to create the initial population of the generation
 Generation::Generation(const GenomeLayout _Layout, const unsigned int _Pop_Num)
 {
@@ -127,6 +113,6 @@ void Generation::Reproduce(const double _Kill_Percent)
     for(unsigned int i = 0; i < this->AllSpecies.size(); i++)
     {
         unsigned int Num_Offsprings = 0;
-        Num_Offsprings = 
+        //Num_Offsprings = 
     }
 }

@@ -17,31 +17,7 @@ struct GenomeLayout
     GenomeLayout(const unsigned int _InputNodes, const unsigned int _OutputNodes, Node::ActFunc _OutputMode);
 };
 
-// This structure contains the parameters to mutate a genome
-struct MutateParams
-{   
-    // Probability to toggle a connection
-    unsigned int ToggleConnect_Percent;
-
-    // Probability to change a weight
-    unsigned int MutateWeight_Percent; 
-    unsigned int RNGPercent;  // Probability to change a weight RANDOMLY
-
-    // Probability to add a node
-    unsigned int AddNode_Percent;
-    Node::ActFunc HiddenMode; // The type of activation function hidden nodes should use
-
-    // Probability to add a connection
-    unsigned int AddConnection_Percent;
-
-    // Constructor to initialize the structure
-    MutateParams(const unsigned int _ToggleConnect_Percent, 
-                 const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
-                 const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
-                 const unsigned int _AddConnection_Percent);
-};
-
-
+// Class for mutating, testing, and crossing-over entire population
 class Generation
 {
 private:
