@@ -47,6 +47,11 @@ inline double Node::act_Swish(const double x)
     return (x * Node::act_Sigmoid(x));
 }
 
+inline double Node::act_Modified_Sigmoid(const double x)
+{
+    return (1.0 / (std::exp(-4.9 * x) + 1.0));
+}
+
 // Member function to select the type of activation function to use
 void Node::ApplyActFunc()
 {
@@ -58,6 +63,8 @@ void Node::ApplyActFunc()
     case ActFunc::Tanh:     this->Val = Node::act_Tanh(this->Val);    break;
     case ActFunc::ReLU:     this->Val = Node::act_ReLU(this->Val);    break;
     case ActFunc::Swish:    this->Val = Node::act_Swish(this->Val);   break;
+    case ActFunc::Modified_Sigmoid:
+                            this->Val = Node::act_Modified_Sigmoid(this->Val); break;
     default:                break;
     }
 }
@@ -953,6 +960,8 @@ void Genome::PrintGenotype() const
         case Node::ActFunc::Sigmoid:    node_af = "Sigmoid";    break;
         case Node::ActFunc::Tanh:       node_af = "Tanh";       break;
         case Node::ActFunc::Swish:      node_af = "Swish";      break;
+        case Node::ActFunc::Modified_Sigmoid:
+                                        node_af = "M_Sigmoid";  break;
         default:                                                break;
         }
 

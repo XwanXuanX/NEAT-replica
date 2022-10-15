@@ -14,7 +14,7 @@
 struct Node
 {
     // List of activation functions
-    enum ActFunc{None, Linear, Sigmoid, Tanh, ReLU, Swish};
+    enum ActFunc{None, Linear, Sigmoid, Tanh, ReLU, Swish, Modified_Sigmoid};
 
     unsigned short int  ID;     // The unique identification number of each node
     std::string         Type;   // The type of the node: Sensor/Hidden/Output
@@ -30,6 +30,7 @@ struct Node
     static double act_Tanh(const double x);
     static double act_ReLU(const double x);
     static double act_Swish(const double x);
+    static double act_Modified_Sigmoid(const double x);
 
     // Member function to select the type of activation function to use
     void ApplyActFunc();
