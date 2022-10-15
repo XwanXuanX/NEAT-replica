@@ -25,6 +25,8 @@ private:
     Genome*              Population; // Pointer to a dynamically allocated array containing all Genomes
     std::vector<Species> AllSpecies; // List of all species within the generation
 
+    unsigned int         Gen_number; // The current number of generation
+
 public:
     // Constructor to create the initial population of the generation
     Generation(const GenomeLayout _Layout, const unsigned int _Pop_Num);
@@ -35,13 +37,18 @@ public:
     // Mutate the entire population based on some parameters
     void Mutate(const MutateParams _Params);
 
-    // Test and evaluate (to be determined...)
+    // Test and evaluate the population
+    void Evaluate(void (*_Test)(Genome*));
 
     // Speciate based on compatibility distance
     void Speciate(const double _CompatThreshold, const CompatDistParams _Params);
 
     // Reproduce within species and refresh population
-    void Reproduce(const double _Kill_Percent);
+    void Reproduce(const double _Kill_Percent, const unsigned int _Threshold_Gen, 
+                   const double _Mut_Percent, const MutateParams _Params);
+
+    // Print out the information about this generation
+    void PrintGenInfo() const;
 };
 
 #endif
