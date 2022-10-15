@@ -7,11 +7,13 @@
             "args": [
             //  "-mwindows",
                 "-fdiagnostics-color=always",
+                "-I",
+                "${workspaceFolder}\\include",              // Add include path "NEAT-replica\\include"
                 "-g",
-                "main.cpp",
-                "Genome.cpp",
-                "Species.cpp",
-                "Generation.cpp",
+                "main.cpp",                                 // Main program
+                "${workspaceFolder}\\src\\Genome.cpp",      // Add compiled file path "NEAT-replica\\src"
+                "${workspaceFolder}\\src\\Species.cpp",
+                "${workspaceFolder}\\src\\Generation.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
