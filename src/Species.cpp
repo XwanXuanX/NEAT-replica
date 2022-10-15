@@ -9,6 +9,20 @@ CompatDistParams::CompatDistParams(const double _c1, const double _c2, const dou
     this->NormalThreshold = _NormalThreshold;
 }
 
+// Constructor to initialize the structure
+MutateParams::MutateParams(const unsigned int _ToggleConnect_Percent, 
+                           const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
+                           const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
+                           const unsigned int _AddConnection_Percent)
+{
+    this->ToggleConnect_Percent = _ToggleConnect_Percent;
+    this->MutateWeight_Percent  = _MutateWeight_Percent;
+    this->RNGPercent            = _RNGPercent;
+    this->AddNode_Percent       = _AddNode_Percent;
+    this->HiddenMode            = _HiddenMode;
+    this->AddConnection_Percent = _AddConnection_Percent;
+}
+
 // Constructor: Initialize a new species with a genome
 Species::Species(const Genome _NewGenome)
 {
@@ -36,7 +50,7 @@ void Species::CalcAdjFitness()
 {
     for(unsigned int i = 0; i < this->Organisms.size(); i++)
     {
-        Organisms[i].CalcAdjFitness(this->Organisms.size());
+        this->Organisms[i].CalcAdjFitness(this->Organisms.size());
     }
 }
 
@@ -58,18 +72,15 @@ void Species::ClearSpecies()
 //      * If a species does not contain any members after speciation, it will not reproduce
 //      * If there is only one organism left after killing, it will breed with itself
 //      * If there are more than one organisms left, the species will reproduce based on order
-std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const double _Kill_Percent)
+std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const double _Kill_Percent, 
+                                       const double _Mut_Percent, const MutateParams _Params)
 {
     // list used to hold reproduced offsprings
     std::vector<Genome> Offsprings;
 
-    // If a species does not contain any members after speciation, it will not reproduce
-    if(this->Organisms.size() == 0)
+    // If a species does not contain any members after speciation, or its not allowed to produce, it will not reproduce
+    if(this->Organisms.size() == 0 || _Num_Offsprings == 0)
         return Offsprings;
-
-    // Kill the lowest performing members
-    double _Keep_Number = this->Organisms.size() * (1.0 - _Kill_Percent);
-    _Keep_Number = (_Keep_Number <= 1.0) ? 1 : std::round(_Keep_Number);
 
     // The organisms should be sorted in decending order based on their adjusted fitness
     std::sort(this->Organisms.begin(), this->Organisms.end(), 
@@ -87,6 +98,24 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
     InspectMembers(this->Organisms);
 #endif
 
+    // According to original paper, the champion of each species with more than five networks,
+    // Was copied into the next generation unchanged!
+    if(this->Organisms.size() > 5)
+    {
+        // Append champion into the next generation
+        Offsprings.push_back(this->Organisms.at(0));
+#if (defined DEBUG) && (defined REPRODUCE)
+        std::cout << Offsprings.size() << ": Champion with fitness " 
+                  << this->Organisms.at(0).getFitness() << " was added to offspring" << std::endl;
+#endif
+        if(Offsprings.size() >= _Num_Offsprings)
+            return Offsprings;
+    }
+
+    // Kill the lowest performing members
+    double _Keep_Number = this->Organisms.size() * (1.0 - _Kill_Percent);
+    _Keep_Number = (_Keep_Number <= 1.0) ? 1 : std::round(_Keep_Number);
+
     // Start killing members from back to front
     while(this->Organisms.size() > _Keep_Number)
     {
@@ -100,50 +129,76 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
 #endif
 
     // Select the best organisms to crossover
-    while(true)
+    //      * Some resulted from sexual reproduction: Crossover
+    //      * Some resulted from asexual reproduction: Mutation
+    unsigned int by_mutation = std::floor(_Num_Offsprings * _Mut_Percent);
+    unsigned int by_crossover = _Num_Offsprings - by_mutation;
+    if(by_crossover > 0)
     {
-        // If the species contains only one member, self crossover is allowed
-        if(this->Organisms.size() == 1)
+        while(true)
         {
-            Genome Self = this->Organisms.at(0);
-            Genome new_genome = Self.Crossover(Self, Self.getFitness(), Self.getFitness());
-            Offsprings.push_back(new_genome);
-#if (defined DEBUG) && (defined REPRODUCE)
-            std::cout << Offsprings.size() << ": New genome created by self-crossover" << std::endl;
-#endif
-            // Check if enough offsprings are bread
-            if(Offsprings.size() >= _Num_Offsprings)
-                break;
-            continue;
-        }
-        else
-        {
-            bool should_exit = false;
-            for(unsigned int i = 0; i < this->Organisms.size(); i++)
+            // If the species contains only one member, self crossover is allowed
+            if(this->Organisms.size() == 1)
             {
-                for(unsigned int j = i + 1; j < this->Organisms.size(); j++)
-                {
-                    Genome new_genome = this->Organisms.at(i).Crossover(this->Organisms.at(j),
-                                                           this->Organisms.at(i).getFitness(),
-                                                           this->Organisms.at(j).getFitness());
-                    Offsprings.push_back(new_genome);
+                Genome Self = this->Organisms.at(0);
+                Genome new_genome = Self.Crossover(Self, Self.getFitness(), Self.getFitness());
+                Offsprings.push_back(new_genome);
 #if (defined DEBUG) && (defined REPRODUCE)
-                    std::cout << Offsprings.size() << ": New genome created by crossing-over "
-                              << i + 1 << " and " << j + 1 << std::endl;
+                std::cout << Offsprings.size() << ": New genome created by self-crossover" << std::endl;
 #endif
-                    if(Offsprings.size() >= _Num_Offsprings)
-                    {
-                        should_exit = true;
-                        break;
-                    }
-                    continue;
-                }
-                if(should_exit) break;
+                // Check if enough offsprings are bread
+                if((Offsprings.size() - 1) >= by_crossover)
+                    break;
+                continue;
             }
-            if(should_exit) break;
+            else
+            {
+                bool should_exit = false;
+                for(unsigned int i = 0; i < this->Organisms.size(); i++)
+                {
+                    for(unsigned int j = i + 1; j < this->Organisms.size(); j++)
+                    {
+                        Genome new_genome = this->Organisms.at(i).Crossover(this->Organisms.at(j),
+                                                            this->Organisms.at(i).getFitness(),
+                                                            this->Organisms.at(j).getFitness());
+                        Offsprings.push_back(new_genome);
+#if (defined DEBUG) && (defined REPRODUCE)
+                        std::cout << Offsprings.size() << ": New genome created by crossing-over "
+                                << i + 1 << " and " << j + 1 << std::endl;
+#endif
+                        if((Offsprings.size() - 1) >= by_crossover)
+                        {
+                            should_exit = true;
+                            break;
+                        }
+                        continue;
+                    } if(should_exit) break;
+                } if(should_exit) break;
+            }
         }
     }
 
+    if(by_mutation > 0)
+    {
+        while(true)
+        {
+            for(unsigned int i = 0; i < this->Organisms.size(); i++)
+            {
+                this->Organisms.at(i).Mutate(_Params.ToggleConnect_Percent,
+                    _Params.MutateWeight_Percent, _Params.RNGPercent, _Params.AddNode_Percent,
+                    _Params.HiddenMode, _Params.AddConnection_Percent);
+                Offsprings.push_back(this->Organisms.at(i));
+#if (defined DEBUG) && (defined REPRODUCE)
+                std::cout << Offsprings.size() << ": New genome created by mutating "
+                          << i + 1 << std::endl;
+#endif
+                if(Offsprings.size() >= _Num_Offsprings)
+                    return Offsprings;
+            }
+        }
+    }
+
+    assert(Offsprings.size() == by_crossover + 1);
     return Offsprings;
 }
 

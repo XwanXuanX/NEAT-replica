@@ -2,6 +2,10 @@
 #define SPECIES_H
 
 #include "Genome.h"
+#include <cassert>
+
+#define DEBUG
+#define REPRODUCE
 
 // This struct contains necessary params for calculating Compat Distance function
 struct CompatDistParams
@@ -11,6 +15,30 @@ struct CompatDistParams
 
     CompatDistParams(const double _c1, const double _c2, const double _c3,
                      const unsigned int _NormalThreshold);
+};
+
+// This structure contains the parameters to mutate a genome
+struct MutateParams
+{   
+    // Probability to toggle a connection
+    unsigned int ToggleConnect_Percent;
+
+    // Probability to change a weight
+    unsigned int MutateWeight_Percent; 
+    unsigned int RNGPercent;  // Probability to change a weight RANDOMLY
+
+    // Probability to add a node
+    unsigned int AddNode_Percent;
+    Node::ActFunc HiddenMode; // The type of activation function hidden nodes should use
+
+    // Probability to add a connection
+    unsigned int AddConnection_Percent;
+
+    // Constructor to initialize the structure
+    MutateParams(const unsigned int _ToggleConnect_Percent, 
+                 const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
+                 const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
+                 const unsigned int _AddConnection_Percent);
 };
 
 // Species class must contain: 
@@ -35,7 +63,10 @@ public:
     void ClearSpecies();
 
     // Crossover to produce certain number of offsprings (Pass)
-    std::vector<Genome> Reproduce(const unsigned int _Num_Offsprings, const double _Kill_Percent);
+    std::vector<Genome> Reproduce(const unsigned int _Num_Offsprings, 
+                                  const double _Kill_Percent,  // Decides how many members should be killed
+                                  const double _Mut_Percent,   // Decides how many offsprings should be produced through mutation
+                                  const MutateParams _Params);
 
     // Get the total adjusted fitness of the species (Pass)
     double TotalAdjFitness() const;
