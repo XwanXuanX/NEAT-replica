@@ -1,3 +1,11 @@
+/**
+ * @file Genome.cpp
+ * @brief Function bodies of function declarations in Genome.h
+ * @author Yetong (Tony) Li
+ * @date Oct 3, 2022
+ * @version 1.0.1
+*/
+
 #include "Genome.h"
 
 /**
