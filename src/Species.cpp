@@ -1,5 +1,23 @@
+/**
+ * @file Species.cpp
+ * @brief Function bodies of function declarations in Species.h
+ * @author Yetong (Tony) Li
+ * @date Oct 13, 2022
+ * @version 1.0.1
+*/
+
 #include "Species.h"
 
+/*_______________________________________________________________________________________________________*/
+/*                                      CompatDistParams Struct                                          */
+
+/**
+ * @brief Constructor to initialize CompatDistParams struct
+ * @param[in] _c1 Formula param c1
+ * @param[in] _c2 Formula param c2
+ * @param[in] _c3 Formula param c3
+ * @param[in] _NormalThreshold Should enable formula param N
+*/
 CompatDistParams::CompatDistParams(const double _c1, const double _c2, const double _c3,
                                    const unsigned int _NormalThreshold)
 {
@@ -9,6 +27,18 @@ CompatDistParams::CompatDistParams(const double _c1, const double _c2, const dou
     this->NormalThreshold = _NormalThreshold;
 }
 
+/*_______________________________________________________________________________________________________*/
+/*                                      MutateParams Struct                                              */
+
+/**
+ * @brief Constructor to initialize MutateParams struct
+ * @param[in] _ToggleConnect_Percent Probability to toggle a connection
+ * @param[in] _MutateWeight_Percent Probability to change a weight
+ * @param[in] _RNGPercent Probability to change a weight RANDOMLY
+ * @param[in] _AddNode_Percent Probability to add a node
+ * @param[in] _HiddenMode The type of activation function hidden nodes should use
+ * @param[in] _AddConnection_Percent Probability to add a connection
+*/
 MutateParams::MutateParams(const unsigned int _ToggleConnect_Percent, 
                            const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
                            const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
@@ -22,7 +52,13 @@ MutateParams::MutateParams(const unsigned int _ToggleConnect_Percent,
     this->AddConnection_Percent = _AddConnection_Percent;
 }
 
-// Constructor: Initialize a new species with a genome
+/*_______________________________________________________________________________________________________*/
+/*                                          Species Class                                                */
+
+/**
+ * @brief Initialize a new species with a genome
+ * @param[in] _NewGenome The first organism to be added to this species
+*/
 Species::Species(const Genome _NewGenome)
 {
     // When a new species is created, the first genome will be the represent
@@ -32,7 +68,13 @@ Species::Species(const Genome _NewGenome)
     this->MaxFitGen = 0;
 }
 
-// Check if a genome should be added to this species; if yes, add and return true
+/**
+ * @brief Check if a genome should be added to this species
+ * @param[in] _NewGenome New organism to be added to this species
+ * @param[in] _CompatThreshold Compatibility threshold to determine if it should be added
+ * @param[in] _Params Parameters used to calculate the compatibility distance formula
+ * @return If new organism is added, return true; else, return false
+*/
 bool Species::AddOrganism(const Genome _NewGenome, const double _CompatThreshold, const CompatDistParams _Params)
 {
     double compat_dist = this->Represent.CompatDistance(_NewGenome, _Params.c1, _Params.c2, _Params.c3, _Params.NormalThreshold);
@@ -46,7 +88,9 @@ bool Species::AddOrganism(const Genome _NewGenome, const double _CompatThreshold
     }
 }
 
-// Calculate the adjusted fitness for every organisms in the species
+/**
+ * @brief Calculate the adjusted fitness for every organisms in the species
+*/
 void Species::CalcAdjFitness()
 {
     for(unsigned int i = 0; i < this->Organisms.size(); i++)
@@ -55,9 +99,15 @@ void Species::CalcAdjFitness()
     }
 }
 
-// Clear species for later generations
+/**
+ * @brief Clear species for later generations
+*/
 void Species::ClearSpecies()
 {
+    // If nothing inside the species
+    if(this->Organisms.size() == 0)
+        return;
+
     // Randomly select a genome as the represent of the species
     unsigned int selected = rand() % this->Organisms.size();
     this->Represent = this->Organisms.at(selected);
@@ -66,16 +116,24 @@ void Species::ClearSpecies()
     this->Organisms.clear();
 }
 
-// Crossover to produce certain number of offsprings
-// Some rules for reproduction
-//      * After killing the lowest performing members, each species must have at least one member
-//      * A species CANNOT go extinct
-//      * If a species does not contain any members after speciation, it will not reproduce
-//      * If there is only one organism left after killing, it will breed with itself
-//      * If there are more than one organisms left, the species will reproduce based on order
+/**
+ * @brief Crossover to produce certain number of offsprings
+ * @param[in] _Num_Offsprings The assigned number of offpsrings that a species can produce
+ * @param[in] _Kill_Percent Decides how many members should be killed
+ * @param[in] _Mut_Percent Decides how many offsprings should be produced through mutation
+ * @param[in] _Params Parameters used to mutate an organism
+ * @return A list (vector) of offsprings
+*/
 std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const double _Kill_Percent, 
                                        const double _Mut_Percent, const MutateParams _Params)
 {
+    // Some rules for reproduction
+    //      * After killing the lowest performing members, each species must have at least one member
+    //      * A species CANNOT go extinct
+    //      * If a species does not contain any members after speciation, it will not reproduce
+    //      * If there is only one organism left after killing, it will breed with itself
+    //      * If there are more than one organisms left, the species will reproduce based on order
+
     // list used to hold reproduced offsprings
     std::vector<Genome> Offsprings;
 
@@ -219,7 +277,10 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
     return Offsprings;
 }
 
-// Get the total adjusted fitness of the species
+/**
+ * @brief Get the total adjusted fitness of the species
+ * @return The total adjusted fitness
+*/
 double Species::TotalAdjFitness() const
 {
     double total_fitness = 0;
@@ -230,7 +291,9 @@ double Species::TotalAdjFitness() const
     return total_fitness;
 }
 
-// Print basic information about the species
+/**
+ * @brief Print basic information about the species
+*/
 void Species::PrintSpeciesInfo() const
 {
 #if (defined DEBUG)
@@ -243,16 +306,27 @@ void Species::PrintSpeciesInfo() const
               << std::endl;
 }
 
-// Update the Maximum fitness and its generation number
+/**
+ * @brief Update the Maximum fitness and its generation number
+ * @param[in] _Threshold_Gen If the maximum fitness of a species does not increase
+ *                           for [Threshold generation] generations, it is not allowed to reproduce
+ * @return If current generation exceeds the threshold, return false; else, return true
+*/
 bool Species::CheckMaxFitGen(const unsigned int _Threshold_Gen)
 {
-    // The maximum fitness of current generation
-    double max_fitness = this->Organisms.at(0).getFitness();
-    for(unsigned int i = 0; i < this->Organisms.size(); i++)
+    double max_fitness = 0;
+    if(this->Organisms.size() != 0)
     {
-        if(this->Organisms.at(i).getFitness() > max_fitness)
-            max_fitness = this->Organisms.at(i).getFitness();
+        // The maximum fitness of current generation
+        max_fitness = this->Organisms.at(0).getFitness();
+        for(unsigned int i = 0; i < this->Organisms.size(); i++)
+        {
+            if(this->Organisms.at(i).getFitness() > max_fitness)
+                max_fitness = this->Organisms.at(i).getFitness();
+        }
     }
+    else
+        max_fitness = 0;
 
     if(max_fitness <= this->MaxFit)
         this->MaxFitGen += 1;
@@ -268,7 +342,6 @@ bool Species::CheckMaxFitGen(const unsigned int _Threshold_Gen)
         return true;
 }
 
-// Getters (if need any)
 Genome Species::getRepresent() const
 {
     return this->Represent;
