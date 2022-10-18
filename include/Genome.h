@@ -17,6 +17,7 @@
 #include <cmath>
 #include <map>
 #include <algorithm>
+#include <cassert>
 
 /**
  * @struct Node
@@ -247,7 +248,7 @@ public:
     std::list<Connection> getConnections() const;
     double getFitness() const;
     void setFitness(const double _Fitness);
-    
+
     bool operator>(const Genome &_OtherGenome) const;
 };
 

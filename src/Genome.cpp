@@ -1,18 +1,39 @@
 #include "Genome.h"
 
-//////////////////////////////////////////////////////////////////
-// IMPORTANT: Innovation number (global throughout the project)
+/**
+ * @brief Innovation number (global throughout the project); \
+ * @brief Every unique connection MUST have different innovation number; \
+ * @brief Every same connection MUST have the same innovation number.
+*/
 unsigned int INNOV = 1;
-// IMPORTANT: Innovation number database
-std::map<unsigned int, Connection> INNOV_DATABASE;
-//////////////////////////////////////////////////////////////////
-// IMPORTANT: New node number tracker
-unsigned int node_tracker = 5;
-// IMPORTANT: New node database
-std::map<unsigned int, Connection> NODE_DATABASE;
-//////////////////////////////////////////////////////////////////
 
-// Initialize a new node with initial value 0
+/**
+ * @brief Innovation number database; \
+ * @brief Used to track existing innovation numbers
+*/
+std::map<unsigned int, Connection> INNOV_DATABASE;
+
+/**
+ * @brief Node ID number (global throughout the project); \
+ * @brief When the same connection is broken, node with the same ID must be added
+*/
+extern unsigned int node_tracker;
+
+/**
+ * @brief Node ID number database; \
+ * @brief Used to track existing node IDs
+*/
+std::map<unsigned int, Connection> NODE_DATABASE;
+
+/*________________________________________________________________________________________________________*/
+/*                                          Node Struct                                                   */
+
+/**
+ * @brief Initialize the structure of a genome
+ * @param[in] _ID The unique identification number of each node
+ * @param[in] _Type The type of the node: Sensor/Hidden/Output
+ * @param[in] _Mode The activation function the node use
+*/
 Node::Node(const unsigned short int _ID, const std::string _Type, const ActFunc _Mode)
 {
     this->ID    = _ID;
@@ -21,7 +42,11 @@ Node::Node(const unsigned short int _ID, const std::string _Type, const ActFunc 
     this->Mode  = _Mode;
 }
 
-// Activation functions are defined here
+/**
+ * @brief A number of useful activation functions
+ * @param[in] x The input value of the function
+ * @return The output value of the function
+*/
 inline double Node::act_Linear(const double x)
 {
     return x;
@@ -52,7 +77,7 @@ inline double Node::act_Modified_Sigmoid(const double x)
     return (1.0 / (std::exp(-4.9 * x) + 1.0));
 }
 
-// Member function to select the type of activation function to use
+/*! @brief Apply activation function to the node's output */
 void Node::ApplyActFunc()
 {
     switch (this->Mode)
@@ -69,7 +94,6 @@ void Node::ApplyActFunc()
     }
 }
 
-// Reload operator== to use find() function
 bool Node::operator==(const unsigned short int &_OtherID) const
 {
     return (this->ID == _OtherID);
@@ -80,13 +104,20 @@ bool Node::operator==(const Node &_OtherNode) const
     return (this->ID == _OtherNode.ID);
 }
 
-// Reload operator< to use sort() function on node gene list
 bool Node::operator<(const Node &_OtherNode) const
 {
     return (this->ID < _OtherNode.ID);
 }
 
-// Initialize connection with random weights
+/*________________________________________________________________________________________________________*/
+/*                                          Connection Struct                                             */
+
+/**
+ * @brief Initialize connection with random weights
+ * @param[in] _Innov The Innovation number of the connection
+ * @param[in] _In The input node of the connection
+ * @param[in] _Out The output node of the connection
+*/
 Connection::Connection(const unsigned short int _Innov, const unsigned short int _In, const unsigned short int _Out)
 {
     this->Innov  = _Innov;
@@ -98,7 +129,13 @@ Connection::Connection(const unsigned short int _Innov, const unsigned short int
     this->Weight = (double)rand() / ((double)RAND_MAX / 4) - 2.0;
 }
 
-// Initialize connection with an assigned weight
+/**
+ * @brief Initialize connection with assigned weights
+ * @param[in] _Innov The Innovation number of the connection
+ * @param[in] _In The input node of the connection
+ * @param[in] _Out The output node of the connection
+ * @param[in] _Weight The assigned weight of the connection
+*/
 Connection::Connection(const unsigned short int _Innov, const unsigned short int _In, const unsigned short int _Out, 
                        double                   _Weight)
 {
@@ -109,7 +146,10 @@ Connection::Connection(const unsigned short int _Innov, const unsigned short int
     this->Weight = _Weight;
 }
 
-// Mutate weight: when true, randomly assign new weight; otherwise, nudge the weight slightly
+/**
+ * @brief Mutate the connection weight in two ways
+ * @param[in] _isRNG When true, randomly assign new weight; When false, nudge the weight slightly
+*/
 void Connection::MUTWeight(const bool _isRNG)
 {
     if(_isRNG)
@@ -120,7 +160,9 @@ void Connection::MUTWeight(const bool _isRNG)
         this->Weight *= (double)rand() / ((double)RAND_MAX / 2);
 }
 
-// Mutate enable: toggle the enabled state of the connection
+/**
+ * @brief Toggle the enable state of the connection
+*/
 void Connection::MUTEnable()
 {
     this->Enable = !(this->Enable);
@@ -144,20 +186,25 @@ void Connection::MUTEnable()
     }
 }
 
-// Reload operator< to use sort() function on Connection list
 bool Connection::operator<(const Connection &_OtherConnection) const
 {
     return (this->Innov < _OtherConnection.Innov);
 }
 
-// Reload operator== to use find() function on Connection innovation numbers
 bool Connection::operator==(const Connection &_OtherConnection) const
 {
     return (this->Innov == _OtherConnection.Innov);
 }
 
-// Initialize a Genome with NO hidden units (minimal structure)
-// Initialize 1st generation
+/*________________________________________________________________________________________________________*/
+/*                                          Genome Class                                                  */
+
+/**
+ * @brief Initialize a Genome with NO hidden units (minimal structure)
+ * @param[in] _InputNodes The number of input nodes
+ * @param[in] _OutputNodes The number of output nodes
+ * @param[in] _OutputMode The activation function of output nodes
+*/
 Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, const Node::ActFunc _OutputMode)
 {
     unsigned int node_added = 0;
@@ -179,11 +226,18 @@ Genome::Genome(const unsigned int _InputNodes, const unsigned int _OutputNodes, 
         }
     }
 
+    assert(this->Nodes.size() == _InputNodes + _OutputNodes);
+    assert(this->Connections.size() == _InputNodes * _OutputNodes);
+
     // Initialize fitness to be 0
     this->Fitness = 0;
 }
 
-// Initialize offsprings
+/**
+ * @brief Initialize a Genome with existing node genes and connection genes
+ * @param[in] _Nodes The node gene list
+ * @param[in] _Connections The connection gene list
+*/
 Genome::Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connections)
 {
     this->Nodes       = _Nodes;
@@ -191,9 +245,12 @@ Genome::Genome(const std::list<Node> _Nodes, const std::list<Connection> _Connec
     this->Fitness     = 0;
 }
 
-// Check if the connection is in the INNOV_DATABASE
-//      * If not, insert new connection and new INNOV number, and add to Connection Gene list
-//      * If yes, add to Connection Gene list using the existing INNOV number
+/**
+ * @brief Check if the connection is in the INNOV_DATABASE
+ * @param[in] new_connect The new connection about to be added
+ * @return If yes, add to Connection Gene list using the existing INNOV number; return true \
+ * @return If not, insert new connection and new INNOV number, and add to Connection Gene list; return false
+*/
 bool Genome::ConnectionProcessor(Connection new_connect)
 {
     bool in_database = false;
@@ -228,7 +285,10 @@ bool Genome::ConnectionProcessor(Connection new_connect)
     return in_database;
 }
 
-// Enable/Disable each connection randomly by a percent
+/**
+ * @brief Enable/Disable each connection randomly by a percent
+ * @param[in] _Percent The probability of toggle a connection
+*/
 void Genome::ToggleConnect(const unsigned int _Percent)
 {
     if(_Percent > 100 || _Percent < 0)
@@ -250,7 +310,11 @@ void Genome::ToggleConnect(const unsigned int _Percent)
     }
 }
 
-// Assign/Nudge each weight randomly by a percent
+/**
+ * @brief Assign/Nudge each weight randomly by a percent
+ * @param[in] _Percent The probability of mutating a connection weight
+ * @param[in] _RNGPercent The probability of mutating a weight randomly
+*/
 void Genome::MutateWeight(const unsigned int _Percent, const unsigned int _RNGPercent)
 {
     if(_Percent > 100 || _Percent < 0 || _RNGPercent > 100 || _RNGPercent < 0)
@@ -275,7 +339,11 @@ void Genome::MutateWeight(const unsigned int _Percent, const unsigned int _RNGPe
     }
 }
 
-// Add a new node randomly
+/**
+ * @brief Add a new node randomly by a percent
+ * @param[in] _Percent The probability of adding a new node
+ * @param[in] _HiddenMode The activation function of the new node
+*/
 void Genome::AddNode(const unsigned int _Percent, const Node::ActFunc _HiddenMode)
 {
     if(_Percent > 100 || _Percent < 0)
@@ -349,6 +417,13 @@ void Genome::AddNode(const unsigned int _Percent, const Node::ActFunc _HiddenMod
     }
 }
 
+/**
+ * @brief Check if a new connection creates feedback loop
+ * @param[in] _InputNode The input node of the connection
+ * @param[in] _OutputNode The output node of the connection
+ * @param[in] _InputNum The number of input nodes of the network
+ * @return If connection pass pre-calc test, return true; else, return false
+*/
 bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _OutputNode, const unsigned int _InputNum) const
 {
     // In terms of random access, vectors are more efficient than linkedlist
@@ -438,7 +513,10 @@ bool Genome::_PreCalculation(const unsigned int _InputNode, const unsigned int _
     return false;
 }
 
-// Add a new connection randomly
+/**
+ * @brief Add a new connection randomly by a percent
+ * @param[in] _Percent The probability of adding a new connection 
+*/
 void Genome::AddConnection(const unsigned int _Percent)
 {
     if(_Percent > 100 || _Percent < 0)
@@ -617,8 +695,17 @@ void Genome::AddConnection(const unsigned int _Percent)
     }
 }
 
-// Mutate the Genome in five possible ways
-// If you want to disable any type of mutation, just set the percent to 0
+/**
+ * @brief Mutate the Genome in five ways: \
+ * @brief Add connection; Add node; Change weight; Random weight; Disable/Enable connection. \
+ * @brief If you want to disable any type of mutation, just set the percent to 0
+ * @param[in] _ToggleConnect_Percent The probability of toggle a connection
+ * @param[in] _MutateWeight_Percent The probability of mutating a connection weight
+ * @param[in] _RNGPercent The probability of mutating a weight randomly
+ * @param[in] _AddNode_Percent The probability of adding a new node
+ * @param[in] _HiddenMode The activation function of the new node
+ * @param[in] _AddConnection_Percent The probability of adding a new connection 
+*/
 void Genome::Mutate(const unsigned int _ToggleConnect_Percent, 
                     const unsigned int _MutateWeight_Percent, const unsigned int _RNGPercent, 
                     const unsigned int _AddNode_Percent, const Node::ActFunc _HiddenMode, 
@@ -637,8 +724,12 @@ void Genome::Mutate(const unsigned int _ToggleConnect_Percent,
     this->AddConnection(_AddConnection_Percent);
 }
 
-// Propagate (a.k.a. calculate) the output of the network based on the given input
-std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _InputLength) const
+/**
+ * @brief Propagate (a.k.a. calculate) the output of the network based on the given input
+ * @param[in] *_pInputs The pointer of the input array
+ * @param[in] _InputLength The size of the input array
+ * @return The ordered list of outputs
+*/std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _InputLength) const
 {
     // To randomly access each node more efficiently, transfer all nodes into vector
     std::vector<Node> tmpNodes;
@@ -746,7 +837,15 @@ std::vector<double> Genome::Propagate(double* _pInputs, const std::size_t _Input
     return outputs;
 }
 
-// Calculate the compatibility distance between two genomes
+/**
+ * @brief Calculate the compatibility distance between two genomes
+ * @param[in] &_Other The other genome used to calculate compatibility distance
+ * @param[in] c1 Formula param c1
+ * @param[in] c2 Formula param c2
+ * @param[in] c3 Formula param c3
+ * @param[in] _Normalize_Threshold Should enable formula param N
+ * @return The compatibility distance between two genomes
+*/
 double Genome::CompatDistance(const Genome &_Other, const double c1, const double c2, const double c3, const unsigned int _Normalize_Threshold) const
 {
     // Seperate the Connection Genes into different list for access later
@@ -848,7 +947,13 @@ double Genome::CompatDistance(const Genome &_Other, const double c1, const doubl
     return CompatDistance;
 }
 
-// Crossover (a.k.a. breed) between two genomes
+/**
+ * @brief Crossover (a.k.a. breed) between two genomes
+ * @param[in] &_Other The other genome to crossover
+ * @param[in] this_fitness The fitness of parent 1
+ * @param[in] other_fitness The fitness of parent 2
+ * @return The resulted offspring
+*/
 Genome Genome::Crossover(const Genome &_Other, const double this_fitness, const double other_fitness) const
 {
     std::list<Connection> this_connect = this->Connections;
@@ -937,13 +1042,18 @@ Genome Genome::Crossover(const Genome &_Other, const double this_fitness, const 
     }
 }
 
-// Calculate adjusted fitness
+/**
+ * @brief Calculate the adjusted fitness
+ * @param[in] _Species_Num The number of organisms in the same species
+*/
 void Genome::CalcAdjFitness(const unsigned int _Species_Num)
 {
     this->Fitness = this->Fitness / _Species_Num;
 }
 
-// Print the genotype of current genome to inspect
+/**
+ * @brief Print the genotype of current genome to inspect
+*/
 void Genome::PrintGenotype() const
 {
     // Use iterator to travers the list
@@ -981,7 +1091,6 @@ void Genome::PrintGenotype() const
     }
 }
 
-// Getters (if need any)
 std::list<Node> Genome::getNodes() const
 {
     return this->Nodes;
@@ -997,13 +1106,11 @@ double Genome::getFitness() const
     return this->Fitness;
 }
 
-// Setters (Only need for fitness; need to assign fitness from outside)
 void Genome::setFitness(const double _Fitness)
 {
     this->Fitness = _Fitness;
 }
 
-// Overload operator> to sort genomes in descending order
 bool Genome::operator>(const Genome &_OtherGenome) const
 {
     return (this->Fitness > _OtherGenome.Fitness);
