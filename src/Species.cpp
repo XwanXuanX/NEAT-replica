@@ -301,9 +301,14 @@ void Species::PrintSpeciesInfo() const
     this->Represent.PrintGenotype();
 #endif
     std::cout << "Number of organisms: " << this->Organisms.size() << std::endl;
-    std::cout << "Average adjusted fitness: " 
-              << (this->TotalAdjFitness() / this->Organisms.size())
-              << std::endl;
+    if(this->Organisms.size() == 0)
+        std::cout << "Average adjusted fitness: " << 0 << std::endl;
+    else
+    {
+        std::cout << "Average adjusted fitness: " 
+                  << (this->TotalAdjFitness() / this->Organisms.size())
+                  << std::endl;
+    }
 }
 
 /**
@@ -325,8 +330,6 @@ bool Species::CheckMaxFitGen(const unsigned int _Threshold_Gen)
                 max_fitness = this->Organisms.at(i).getFitness();
         }
     }
-    else
-        max_fitness = 0;
 
     if(max_fitness <= this->MaxFit)
         this->MaxFitGen += 1;
@@ -335,11 +338,8 @@ bool Species::CheckMaxFitGen(const unsigned int _Threshold_Gen)
         this->MaxFit = max_fitness;
         this->MaxFitGen = 0;
     }
-
-    if(MaxFitGen >= _Threshold_Gen)
-        return false;
-    else 
-        return true;
+    
+    return (!(MaxFitGen >= _Threshold_Gen));
 }
 
 Genome Species::getRepresent() const
