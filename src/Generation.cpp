@@ -1,6 +1,22 @@
+/**
+ * @file Generation.cpp
+ * @brief Function bodies of function declarations in Generation.h
+ * @author Yetong (Tony) Li
+ * @date Oct 14, 2022
+ * @version 1.0.1
+*/
+
 #include "Generation.h"
 
-// Constructor to initialize the structure
+/*_______________________________________________________________________________________________________*/
+/*                                          GenomeLayout Struct                                          */
+
+/**
+ * @brief Constructor to initialize the structure of initial population
+ * @param[in] _InputNodes The number of input nodes
+ * @param[in] _OutputNodes The number of output nodes
+ * @param[in] _OutputMode The activation function of output nodes
+*/
 GenomeLayout::GenomeLayout(const unsigned int _InputNodes, const unsigned int _OutputNodes, Node::ActFunc _OutputMode)
 {
     this->InputNodes = _InputNodes;
@@ -8,7 +24,14 @@ GenomeLayout::GenomeLayout(const unsigned int _InputNodes, const unsigned int _O
     this->OutputMode = _OutputMode;
 }
 
-// Constructor to create the initial population of the generation
+/*_______________________________________________________________________________________________________*/
+/*                                          Generation Class                                             */
+
+/**
+ * @brief Constructor to create the initial population of the generation
+ * @param[in] _Layout The network layout of initial population
+ * @param[in] _Pop_Num The number of organisms contained in the population
+*/
 Generation::Generation(const GenomeLayout _Layout, const unsigned int _Pop_Num)
 {
     // Keep track of the number of population
@@ -26,16 +49,21 @@ Generation::Generation(const GenomeLayout _Layout, const unsigned int _Pop_Num)
 
     // Initialize the species list to none
     this->AllSpecies = {};
-    this->Gen_number = 1;
+    this->Gen_number = 0;
 }
 
-// Destructor: free the dynamically allocated memory
+/**
+ * @brief Destructor: free the dynamically allocated memory
+*/
 Generation::~Generation()
 {
     delete[] this->Population;
 }
 
-// Mutate the entire population based on some parameters
+/**
+ * @brief Mutate every member in the population
+ * @param[in] _Params Parameters used to mutate an organism
+*/
 void Generation::Mutate(const MutateParams _Params)
 {
     // Mutate every genome within the population
@@ -51,18 +79,25 @@ void Generation::Mutate(const MutateParams _Params)
     }
 }
 
-// Test and evaluate the population
-void Generation::Evaluate(void (*_Test)(Genome*))
+/**
+ * @brief Test and evaluate every member in the population
+ * @param[in] _Test User-customed function to test and evaluate an organism; return the fitness
+*/
+void Generation::Evaluate(double (*_Test)(const Genome*))
 {
     // Evaluate every genome within the population, using the custom function
     for(unsigned int i = 0; i < this->Pop_Num; i++)
     {
-        // Fitness will be assigned inside the _Test function, thus pass in as pointer
-        _Test(&this->Population[i]);
+        double Fitness = _Test(&this->Population[i]);
+        this->Population[i].setFitness(Fitness);
     }
 }
 
-// Speciate based on compatibility distance
+/**
+ * @brief Speciate based on compatibility distance
+ * @param[in] _CompatThreshold The compatibility threshold
+ * @param[in] _Params Parameters used to calculate compatibility formula
+*/
 void Generation::Speciate(const double _CompatThreshold, const CompatDistParams _Params)
 {
     for(unsigned int i = 0; i < this->Pop_Num; i++)
@@ -107,7 +142,14 @@ void Generation::Speciate(const double _CompatThreshold, const CompatDistParams 
     }
 }
 
-// Reproduce within species and refresh population
+/**
+ * @brief Reproduce within species and refresh population
+ * @param[in] _Kill_Percent The percentage of organisms to be killed
+ * @param[in] _Threshold_Gen If the max fitness of a species does not increase for 
+ *                           [_Threshold_Gen] generations, the species is not allowed to reproduce
+ * @param[in] _Mut_Percent The percentage of offsprings that resulted from mutation instead of crossover
+ * @param[in] _Params Parameters used to mutate an organism
+*/
 void Generation::Reproduce(const double _Kill_Percent, const unsigned int _Threshold_Gen, 
                            const double _Mut_Percent, const MutateParams _Params)
 {
@@ -121,7 +163,12 @@ void Generation::Reproduce(const double _Kill_Percent, const unsigned int _Thres
         if(this->AllSpecies.at(i).CheckMaxFitGen(_Threshold_Gen))
             TotalFitness += this->AllSpecies.at(i).TotalAdjFitness();
         else
+        {
             Unfit_Species.push_back(i);
+#if (defined DEBUG) && (defined GENREPRODUCE)
+            std::cout << "Unfit: " << i + 1 << std::endl;
+#endif
+        }
     }
 
     // Assign the potential number of offsprings for each species, except for the last species
@@ -132,7 +179,12 @@ void Generation::Reproduce(const double _Kill_Percent, const unsigned int _Thres
         // Check if the species is unfit
         find_unfit = std::find(Unfit_Species.begin(), Unfit_Species.end(), i);
         if(find_unfit != Unfit_Species.end())
+        {
+#if (defined DEBUG) && (defined GENREPRODUCE)
+            std::cout << "Excluded: " << i + 1 << std::endl;
+#endif
             continue;
+        }
 
         Num_Offsprings = std::round((this->AllSpecies.at(i).TotalAdjFitness() / 
                                      TotalFitness) * this->Pop_Num);
@@ -143,22 +195,24 @@ void Generation::Reproduce(const double _Kill_Percent, const unsigned int _Thres
     }
 
     // For the last species
-    find_unfit = std::find(Unfit_Species.begin(), Unfit_Species.end(), this->AllSpecies.size());
+    find_unfit = std::find(Unfit_Species.begin(), Unfit_Species.end(), this->AllSpecies.size() - 1);
     if(find_unfit == Unfit_Species.end())
     {
         Num_Offsprings = this->Pop_Num - Offsprings.size();
         // Check with theoretical value
-        unsigned int Theory = std::round((this->AllSpecies.at(this->AllSpecies.size()).TotalAdjFitness() / 
+        unsigned int Theory = std::round((this->AllSpecies.at(this->AllSpecies.size() - 1).TotalAdjFitness() / 
                                           TotalFitness) * this->Pop_Num);
-        Theory = std::abs(static_cast<int>(Num_Offsprings - Theory));
-        assert(Theory <= 2);
+        Theory = std::abs((int)(Num_Offsprings - Theory));
 
         std::vector<Genome> tmp = \
-            this->AllSpecies.at(this->AllSpecies.size()).Reproduce(Num_Offsprings, _Kill_Percent, _Mut_Percent, _Params);
+            this->AllSpecies.at(this->AllSpecies.size() - 1).Reproduce(Num_Offsprings, _Kill_Percent, _Mut_Percent, _Params);
         
         Offsprings.insert(Offsprings.end(), tmp.begin(), tmp.end());
     }
 
+#if (defined DEBUG) && (defined GENREPRODUCE)
+    std::cout << "Offspring size: " << Offsprings.size() << std::endl;
+#endif
     assert(Offsprings.size() == this->Pop_Num);
 
     // Replace the existing population with new offsprings
@@ -167,16 +221,12 @@ void Generation::Reproduce(const double _Kill_Percent, const unsigned int _Thres
         this->Population[i] = Offsprings.at(i);
     }
 
-    // Clear each species for later use
-    for(unsigned int i = 0; i < this->AllSpecies.size(); i++)
-    {
-        this->AllSpecies.at(i).ClearSpecies();
-    }
-
     this->Gen_number += 1;
 }
 
-// Print out the information about this generation
+/**
+ * @brief Print out the information about this generation
+*/
 void Generation::PrintGenInfo() const
 {
     std::cout << "Generation: " << this->Gen_number << " _____________________________________________" << std::endl;
@@ -190,4 +240,19 @@ void Generation::PrintGenInfo() const
     }
     std::cout << "Ave Fitness: " << (total_fitness / total_member) << std::endl;
     std::cout << "Num Species: " << this->AllSpecies.size() << std::endl;
+    std::cout << std::endl;
+}
+
+/**
+ * @brief Clear original members in each species
+*/
+void Generation::ResetSpecies()
+{
+    for(unsigned int i = 0; i < this->AllSpecies.size(); i++)
+    {
+#if (defined DEBUG) && (defined GENREPRODUCE)
+        std::cout << "Number of organisms: " << this->AllSpecies.at(i).getSpeciesSize() << std::endl;
+#endif
+        this->AllSpecies.at(i).ClearSpecies();
+    }
 }
