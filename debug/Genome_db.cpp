@@ -74,6 +74,29 @@ int main()
         Genome parent1 = test_genes[rand() % TEST_POP];
         Genome parent2 = test_genes[rand() % TEST_POP];
         Offsp[i] = parent1.Crossover(parent2, rand() % 2, rand() % 2);
+
+        std::list<Node> node = Offsp[i].getNodes();
+        std::list<Connection> connect = Offsp[i].getConnections();
+        for(auto iter = node.begin(); iter != node.end(); iter++)
+        {
+            for(auto tester = node.begin(); tester != node.end(); tester++)
+            {
+                if(tester == iter)
+                    continue;
+                assert(tester->ID != iter->ID);
+            }
+        }
+
+        for(auto iter = connect.begin(); iter != connect.end(); iter++)
+        {
+            for(auto tester = connect.begin(); tester != connect.end(); tester++)
+            {
+                if(tester == iter)
+                    continue;
+                assert(tester->Innov != iter->Innov);
+                assert(tester->In != iter->In || tester->Out != iter->Out);
+            }
+        }
     }
 
     // 2nd Generation
