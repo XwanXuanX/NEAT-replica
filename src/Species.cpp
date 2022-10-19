@@ -258,6 +258,7 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
                 this->Organisms.at(i).Mutate(_Params.ToggleConnect_Percent,
                     _Params.MutateWeight_Percent, _Params.RNGPercent, _Params.AddNode_Percent,
                     _Params.HiddenMode, _Params.AddConnection_Percent);
+                this->Organisms.at(i).setFitness(0);
                 Offsprings.push_back(this->Organisms.at(i));
                 added++;
 #if (defined DEBUG) && (defined REPRODUCE)
