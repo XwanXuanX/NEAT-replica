@@ -162,6 +162,7 @@ std::vector<Genome> Species::Reproduce(const unsigned int _Num_Offsprings, const
     if(this->Organisms.size() > 5)
     {
         // Append champion into the next generation
+        this->Organisms.at(0).setFitness(0);
         Offsprings.push_back(this->Organisms.at(0));
 #if (defined DEBUG) && (defined REPRODUCE)
         std::cout << Offsprings.size() << ": Champion with fitness " 
