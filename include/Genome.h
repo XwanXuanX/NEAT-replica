@@ -88,7 +88,7 @@ struct Connection
      * @param[in] _Out The output node of the connection
      * @param[in] _Weight The assigned weight of the connection
     */
-    Connection(const UINT* const _In, const UINT* const _Out, const double* const _Weight);
+    Connection(const UINT* const _In, const UINT* const _Out, const double _Weight);
 
     /**
      * @brief Mutate the connection weight in two ways
@@ -211,7 +211,7 @@ public:
 
     /**
      * @brief Crossover (a.k.a. breed) between two genomes
-     * @param[in] &_Other The other genome to crossover
+     * @param[in] _Other The other genome to crossover
      * @param[in] this_fitness The fitness of parent 1
      * @param[in] other_fitness The fitness of parent 2
      * @return The resulted offspring
