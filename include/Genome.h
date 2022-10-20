@@ -96,11 +96,6 @@ struct Connection
     */
     void MUTWeight(const bool _isRNG=true);
 
-    /**
-     * @brief Toggle the enable state of the connection
-    */
-    void MUTEnable();
-
     bool operator<(const Connection &_OtherConnection) const;
     bool operator==(const Connection &_OtherConnection) const;
 };
@@ -118,12 +113,6 @@ private:
     NODEVEC     Nodes;          /*! @brief Node Genes list */
 	CNCTVEC 	Connections;    /*! @brief Connection Genes list */
     double		Fitness;        /*! @brief The fitness of the genome */
-
-    /**
-     * @brief Enable/Disable each connection randomly by a percent
-     * @param[in] _Percent The probability of toggle a connection
-    */
-    void ToggleConnect(const UINT* const _Percent);
 
     /**
      * @brief Assign/Nudge each weight randomly by a percent
@@ -161,7 +150,7 @@ private:
      * @return If yes, add to Connection Gene list using the existing INNOV number; return true \
      * @return If not, insert new connection and new INNOV number, and add to Connection Gene list; return false
     */
-    bool ConnectionProcessor(const Connection* const new_connect);
+    bool ConnectionProcessor(Connection* const new_connect);
 
 public:
     /**
@@ -189,15 +178,13 @@ public:
      * @brief Mutate the Genome in five ways: \
      * @brief Add connection; Add node; Change weight; Random weight; Disable/Enable connection. \
      * @brief If you want to disable any type of mutation, just set the percent to 0
-     * @param[in] _ToggleConnect_Percent The probability of toggle a connection
      * @param[in] _MutateWeight_Percent The probability of mutating a connection weight
      * @param[in] _RNGPercent The probability of mutating a weight randomly
      * @param[in] _AddNode_Percent The probability of adding a new node
      * @param[in] _HiddenMode The activation function of the new node
      * @param[in] _AddConnection_Percent The probability of adding a new connection 
     */
-    void Mutate(const UINT* const _ToggleConnect_Percent, 
-                const UINT* const _MutateWeight_Percent, const UINT* const _RNGPercent, 
+    void Mutate(const UINT* const _MutateWeight_Percent, const UINT* const _RNGPercent, 
                 const UINT* const _AddNode_Percent, const Node::ActFunc* const _HiddenMode, 
                 const UINT* const _AddConnection_Percent);
 
