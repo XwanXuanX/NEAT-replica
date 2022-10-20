@@ -37,10 +37,12 @@ struct GenomeLayout
 class Generation
 {
 private:
-    unsigned int         Pop_Num;    /*! @brief Keep track of the size of the population */
-    Genome*              Population; /*! @brief Pointer to a dynamically allocated array containing all Genomes */
-    std::vector<Species> AllSpecies; /*! @brief List of all species within the generation */
-    unsigned int         Gen_number; /*! @brief The current number of generation */
+    unsigned int         Pop_Num;       /*! @brief Keep track of the size of the population */
+    Genome*              Population;    /*! @brief Pointer to a dynamically allocated array containing all Genomes */
+    std::vector<Species> AllSpecies;    /*! @brief List of all species within the generation */
+    unsigned int         Gen_number;    /*! @brief The current number of generation */
+    double               BestFitness;   /*! @brief The best fitness of entire population */
+    Genome*              BestOrganism;  /*! @brief The pointer to the best organism of entire population */
 
 public:
     /**
@@ -68,6 +70,11 @@ public:
     void Evaluate(double (*_Test)(const Genome*));
 
     /**
+     * @brief Print out the information about this generation
+    */
+    void PrintGenInfo() const;
+
+    /**
      * @brief Speciate based on compatibility distance
      * @param[in] _CompatThreshold The compatibility threshold
      * @param[in] _Params Parameters used to calculate compatibility formula
@@ -85,15 +92,7 @@ public:
     void Reproduce(const double _Kill_Percent, const unsigned int _Threshold_Gen, 
                    const double _Mut_Percent, const MutateParams _Params);
 
-    /**
-     * @brief Print out the information about this generation
-    */
-    void PrintGenInfo() const;
-    
-    /**
-     * @brief Clear original members in each species
-    */
-    void ResetSpecies();
+    Genome* getChampion() const;
 };
 
 #endif

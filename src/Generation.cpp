@@ -49,7 +49,9 @@ Generation::Generation(const GenomeLayout _Layout, const unsigned int _Pop_Num)
 
     // Initialize the species list to none
     this->AllSpecies = {};
-    this->Gen_number = 0;
+    this->Gen_number = 1;
+    this->BestFitness = 0;
+    this->BestOrganism = nullptr;
 }
 
 /**
@@ -58,6 +60,8 @@ Generation::Generation(const GenomeLayout _Layout, const unsigned int _Pop_Num)
 Generation::~Generation()
 {
     delete[] this->Population;
+    this->Population = nullptr;
+    this->BestOrganism = nullptr;
 }
 
 /**
@@ -90,7 +94,30 @@ void Generation::Evaluate(double (*_Test)(const Genome*))
     {
         double Fitness = _Test(&this->Population[i]);
         this->Population[i].setFitness(Fitness);
+
+        if(Fitness > this->BestFitness)
+        {
+            this->BestFitness = Fitness;
+            this->BestOrganism = &this->Population[i];
+        }
     }
+}
+
+/**
+ * @brief Print out the information about this generation
+*/
+void Generation::PrintGenInfo() const
+{
+    std::cout << "_____________________" << std::endl;
+    std::cout << "Generation: " << "\t" << this->Gen_number << std::endl;
+    std::cout << "Population: " << "\t" << this->Pop_Num << std::endl;
+    double total_fitness = 0;
+    for(unsigned int i = 0; i < Pop_Num; i++)
+    {
+        total_fitness += this->Population[i].getFitness();
+    }
+    std::cout << "Ave Fitness: " << "\t" << (total_fitness / Pop_Num) << std::endl;
+    std::cout << "Num Species: " << "\t" << this->AllSpecies.size() << std::endl;
 }
 
 /**
@@ -221,38 +248,17 @@ void Generation::Reproduce(const double _Kill_Percent, const unsigned int _Thres
         this->Population[i] = Offsprings.at(i);
     }
 
-    this->Gen_number += 1;
-}
-
-/**
- * @brief Print out the information about this generation
-*/
-void Generation::PrintGenInfo() const
-{
-    std::cout << "Generation: " << this->Gen_number << " _____________________________________________" << std::endl;
-    std::cout << "Population: " << this->Pop_Num << std::endl;
-    double total_fitness = 0;
-    unsigned int total_member = 0;
+    // Clear all species
     for(unsigned int i = 0; i < this->AllSpecies.size(); i++)
     {
-        total_fitness += this->AllSpecies.at(i).TotalAdjFitness();
-        total_member += this->AllSpecies.at(i).getSpeciesSize();
-    }
-    std::cout << "Ave Fitness: " << (total_fitness / total_member) << std::endl;
-    std::cout << "Num Species: " << this->AllSpecies.size() << std::endl;
-    std::cout << std::endl;
-}
-
-/**
- * @brief Clear original members in each species
-*/
-void Generation::ResetSpecies()
-{
-    for(unsigned int i = 0; i < this->AllSpecies.size(); i++)
-    {
-#if (defined DEBUG) && (defined GENREPRODUCE)
-        std::cout << "Number of organisms: " << this->AllSpecies.at(i).getSpeciesSize() << std::endl;
-#endif
         this->AllSpecies.at(i).ClearSpecies();
     }
+
+    // Increase generation number
+    this->Gen_number++;
+}
+
+Genome* Generation::getChampion() const
+{
+    return this->BestOrganism;
 }
