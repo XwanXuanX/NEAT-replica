@@ -5,15 +5,17 @@
             "label": "C/C++: g++.exe 生成活动文件",
             "command": "C:\\mingw64\\bin\\g++.exe",
             "args": [
-            //  "-mwindows",
                 "-fdiagnostics-color=always",
+                // Include path
                 "-I",
-                "${workspaceFolder}\\include",              // Add include path "NEAT-replica\\include"
+                "${workspaceFolder}\\include",
+                // Compiled files
                 "-g",
-                "main.cpp",                                 // Main program
-                "${workspaceFolder}\\src\\Genome.cpp",      // Add compiled file path "NEAT-replica\\src"
+                "main.cpp",
+                "${workspaceFolder}\\src\\Genome.cpp",
                 "${workspaceFolder}\\src\\Species.cpp",
                 "${workspaceFolder}\\src\\Generation.cpp",
+                // Output file
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
