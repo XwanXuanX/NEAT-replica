@@ -59,6 +59,7 @@ struct Node
 	*/
     void ApplyActFunc();
 
+	bool operator==(const UINT &_NodeID) const;
     bool operator==(const Node &_OtherNode) const;
     bool operator<(const Node &_OtherNode) const;
 };
@@ -80,7 +81,7 @@ struct Connection
      * @param[in] _In The input node of the connection
      * @param[in] _Out The output node of the connection
     */
-   	Connection(const UINT* const _In, const UINT* const _Out);
+   	Connection(const UINT & _In, const UINT &_Out);
 
     /**
      * @brief Initialize connection with assigned weights
@@ -88,13 +89,13 @@ struct Connection
      * @param[in] _Out The output node of the connection
      * @param[in] _Weight The assigned weight of the connection
     */
-    Connection(const UINT* const _In, const UINT* const _Out, const double _Weight);
+    Connection(const UINT &_In, const UINT &_Out, const double _Weight);
 
     /**
      * @brief Mutate the connection weight in two ways
      * @param[in] _isRNG When true, randomly assign new weight; When false, nudge the weight slightly
     */
-    void MUTWeight(const bool _isRNG=true);
+    void MUTWeight(const bool _isRNG);
 
     bool operator<(const Connection &_OtherConnection) const;
     bool operator==(const Connection &_OtherConnection) const;
@@ -119,20 +120,20 @@ private:
      * @param[in] _Percent The probability of mutating a connection weight
      * @param[in] _RNGPercent The probability of mutating a weight randomly
     */
-    void MutateWeight(const UINT* const _Percent, const UINT* const _RNGPercent);
+    void MutateWeight(const UINT &_Percent, const UINT &_RNGPercent);
 
     /**
      * @brief Add a new node randomly by a percent
      * @param[in] _Percent The probability of adding a new node
      * @param[in] _HiddenMode The activation function of the new node
     */
-    void AddNode(const UINT* const _Percent, const Node::ActFunc* const _HiddenMode);
+    void AddNode(const UINT &_Percent, const Node::ActFunc &_HiddenMode);
 
     /**
      * @brief Add a new connection randomly by a percent
      * @param[in] _Percent The probability of adding a new connection 
     */
-    void AddConnection(const UINT* const _Percent);
+    void AddConnection(const UINT &_Percent);
 
     /**
      * @brief Check if a new connection creates feedback loop
@@ -141,8 +142,8 @@ private:
      * @param[in] _InputNum The number of input nodes of the network
      * @return If connection pass pre-calc test, return true; else, return false
     */
-    bool _PreCalculation(const UINT* const _InputNode, const UINT* const _OutputNode, 
-						 const UINT* const _InputNum) const;
+    bool _PreCalculation(const UINT &_InputNode, const UINT &_OutputNode, 
+						 const UINT &_InputNum) const;
 
     /**
      * @brief Check if the connection is in the INNOV_DATABASE
@@ -159,15 +160,15 @@ public:
      * @param[in] _OutputNodes The number of output nodes
      * @param[in] _OutputMode The activation function of output nodes
     */
-    Genome(const UINT* const _InputNodes, const UINT* const _OutputNodes, 
-		   const Node::ActFunc* const _OutputMode);
+    Genome(const UINT &_InputNodes, const UINT &_OutputNodes, 
+		   const Node::ActFunc &_OutputMode);
     
     /**
      * @brief Initialize a Genome with existing node genes and connection genes
      * @param[in] _Nodes The node gene list
      * @param[in] _Connections The connection gene list
     */
-   	Genome(const NODEVEC* const _Nodes, const CNCTVEC* const _Connections);
+   	Genome(const NODEVEC &_Nodes, const CNCTVEC &_Connections);
 
     /**
      * @brief Default constructor (fixed unknown issues in Species.cpp)
@@ -184,9 +185,9 @@ public:
      * @param[in] _HiddenMode The activation function of the new node
      * @param[in] _AddConnection_Percent The probability of adding a new connection 
     */
-    void Mutate(const UINT* const _MutateWeight_Percent, const UINT* const _RNGPercent, 
-                const UINT* const _AddNode_Percent, const Node::ActFunc* const _HiddenMode, 
-                const UINT* const _AddConnection_Percent);
+    void Mutate(const UINT &_MutateWeight_Percent, const UINT &_RNGPercent, 
+                const UINT &_AddNode_Percent, const Node::ActFunc &_HiddenMode, 
+                const UINT &_AddConnection_Percent);
 
     /**
      * @brief Propagate (a.k.a. calculate) the output of the network based on the given input
@@ -205,9 +206,9 @@ public:
      * @param[in] _Normalize_Threshold Should enable formula param N
      * @return The compatibility distance between two genomes
     */
-    double CompatDistance(const Genome* const _Other, 
-                          const double* const c1, const double* const c2, const double* const c3, 
-                          const UINT* const _Normalize_Threshold) const;
+    double CompatDistance(const Genome &_Other, 
+                          const double &c1, const double &c2, const double &c3, 
+                          const UINT &_Normalize_Threshold) const;
 
     /**
      * @brief Crossover (a.k.a. breed) between two genomes
@@ -216,14 +217,14 @@ public:
      * @param[in] other_fitness The fitness of parent 2
      * @return The resulted offspring
     */
-    Genome Crossover(const Genome* const _Other, const double* const this_fitness, 
-					 const double* const other_fitness) const;
+    Genome Crossover(const Genome &_Other, const double &this_fitness, 
+					 const double &other_fitness) const;
 
     /**
      * @brief Calculate the adjusted fitness
      * @param[in] _Species_Num The number of organisms in the same species
     */
-    void CalcAdjFitness(const UINT* const _Species_Num);
+    void CalcAdjFitness(const UINT &_Species_Num);
 
     /**
      * @brief Print the genotype of current genome to inspect
