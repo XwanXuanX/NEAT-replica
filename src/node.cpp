@@ -1,59 +1,106 @@
-#include "../inc/node.hpp"
+// The MIT License (MIT)
 
-Node::Node(const UINT _ID, const NodeType _Type, const ActFunc _AF)
-    : ID(_ID), Type(_Type), AF(_AF), Val(0.0) {}
+// Copyright (c) 2022 Yetong (Tony) Li
 
-// Activation function list
-inline double Node::act_Linear(const double x) { 
-    return x; 
-}
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
 
-inline double Node::act_Sigmoid(const double x) { 
-    return (1.0 / (std::exp(-x) + 1.0)); 
-}
+#include "node.hpp"
 
-inline double Node::act_Tanh(const double x) { 
-    return std::tanh(x); 
-}
+// copy constructor
+Node::Node(const Node& __other) noexcept
+    : m_ID(__other.m_ID), 
+    m_type(__other.m_type), 
+    m_val(0.0),
+    m_func(__other.m_func) {}
 
-inline double Node::act_ReLU(const double x) { 
-    return (x >= 0 ? x : 0); 
-}
-
-inline double Node::act_Swish(const double x) { 
-    return (x * Node::act_Sigmoid(x)); 
-}
-
-inline double Node::act_Modified_Sigmoid(const double x) { 
-    return (1.0 / (std::exp(-4.9 * x) + 1.0)); 
-}
-
-// Apply activation function to current node
-void Node::ApplyActFunc() noexcept
+// copy assignment op
+Node& Node::operator=(const Node& __other) noexcept
 {
-    switch (this->AF)
+    this->m_ID = __other.m_ID;
+    this->m_type = __other.m_type;
+    this->m_val = 0;
+    this->m_func = __other.m_func;
+    return *this;
+}
+
+// user-defined ctor
+Node::Node(const uint __ID, const NodeType __type, const ActFunc __func) noexcept
+    : m_ID(__ID), 
+    m_type(__type), 
+    m_val(0.0), 
+    m_func(__func) {}
+
+// member functions
+void Node::ApplyActFunc() noexcept
+try
+{
+    switch(this->m_func)
     {
-    case ActFunc::None:     break;
-    case ActFunc::Linear:   this->Val = Node::act_Linear(this->Val);  break;
-    case ActFunc::Sigmoid:  this->Val = Node::act_Sigmoid(this->Val); break;
-    case ActFunc::Tanh:     this->Val = Node::act_Tanh(this->Val);    break;
-    case ActFunc::ReLU:     this->Val = Node::act_ReLU(this->Val);    break;
-    case ActFunc::Swish:    this->Val = Node::act_Swish(this->Val);   break;
-    case ActFunc::Modified_Sigmoid:
-                            this->Val = Node::act_Modified_Sigmoid(this->Val); break;
-    default:                break;
+        case ActFunc::None:
+        case ActFunc::Linear:
+            break;
+
+        case ActFunc::Sigmoid:
+            this->m_val = (1.0 / (std::exp(-this->m_val) + 1.0));
+            break;
+
+        case ActFunc::Tanh:
+            this->m_val = std::tanh(this->m_val);
+            break;
+
+        case ActFunc::ReLU:
+            this->m_val = (this->m_val >= 0 ? this->m_val : 0);
+            break;
+
+        case ActFunc::Swish:
+            this->m_val = (this->m_val * (1.0 / (std::exp(-this->m_val) + 1.0)));
+            break;
+
+        case ActFunc::Modified_Sigmoid:
+            this->m_val = (1.0 / (std::exp(-4.9 * this->m_val) + 1.0));
+            break;
+        
+        default:
+            throw std::range_error("Unknown activation function... \n");
+            break;
     }
 }
-
-// overload operator
-bool Node::operator==(const UINT &_NodeID) const {
-     return (this->ID == _NodeID); 
+catch(const std::range_error& e)
+{
+    std::cout << "File: " << __FILE__ << '\n'
+              << "Line: " << __LINE__ << '\n'
+              << e.what() << '\n';
+    throw;
 }
 
-bool Node::operator==(const Node &_OtherNode) const { 
-    return (this->ID == _OtherNode.ID); 
+// operator reload
+inline bool Node::operator==(const uint __other) const noexcept
+{
+    return this->m_ID == __other;
 }
 
-bool Node::operator<(const Node &_OtherNode) const { 
-    return (this->ID < _OtherNode.ID); 
+inline bool operator==(const Node& __lhs, const Node& __rhs) noexcept
+{
+    return __lhs.m_ID == __rhs.m_ID;
+}
+
+inline bool operator<(const Node& __lhs, const Node& __rhs) noexcept
+{
+    return __lhs.m_ID < __rhs.m_ID;
 }
